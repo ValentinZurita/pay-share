@@ -1,0 +1,523 @@
+<title>Diseño Pay Share</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: dos teléfonos enlazados (comensal y caja). Estética de checkout financiero: fondo gris azulado muy claro, superficies blancas
+   con sombras finas en capas, tinta azul marino, un solo acento índigo, radios pequeños y tipografía precisa. Un solo tema, a propósito. */
+:root{
+  color-scheme:light;
+  --bg:#f6f9fc; --surface:#ffffff;
+  --ink:#0a2540; --text:#425466; --muted:#697386;
+  --line:#e3e8ee; --line-strong:#d5dbe1;
+  --primary:#635bff; --primary-press:#5147e5; --primary-mid:#b3aeff; --primary-tint:#f0efff; --on-primary:#ffffff;
+  --ok:#0e6245; --ok-bg:#cbf4c9; --ok-solid:#24b47e;
+  --warn:#983705; --warn-bg:#f8e5b9;
+  --neutral:#4f566b; --neutral-bg:#e3e8ee;
+  --danger:#c0123c;
+  --sh-1:0 0 0 1px rgba(50,50,93,.07),0 1px 1px rgba(0,0,0,.05),0 2px 5px rgba(50,50,93,.08);
+  --sh-2:0 0 0 1px rgba(50,50,93,.05),0 2px 4px rgba(0,0,0,.05),0 8px 18px rgba(50,50,93,.1);
+  --sh-btn:0 1px 1px rgba(0,0,0,.12),0 2px 5px rgba(50,50,93,.16);
+  --focus:0 0 0 1px var(--primary),0 0 0 4px rgba(99,91,255,.25);
+  --font:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.5;
+  padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-font-smoothing:antialiased}
+.page{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+h1,h2,h3,p{margin:0}
+h1{font-size:clamp(28px,4.4vw,38px);font-weight:700;letter-spacing:-.03em;line-height:1.1;color:var(--ink);text-wrap:balance}
+.page>section>h2{font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--ink)}
+.lede{max-width:58ch;margin-top:10px}
+.num{font-variant-numeric:tabular-nums}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.eyebrow{font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:0;box-shadow:var(--focus)}
+.plain{background:var(--surface);box-shadow:var(--sh-1);border-radius:8px;padding:7px 14px;font-weight:500;font-size:14px;color:var(--ink)}
+
+/* ---------- Teléfonos ---------- */
+.stage{display:flex;gap:44px;justify-content:center;flex-wrap:wrap}
+.unit{display:flex;flex-direction:column;gap:12px;width:min(100%,376px)}
+.unit-head h2{font-size:16px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
+.unit-head p{color:var(--muted);font-size:13.5px}
+.phone{background:var(--surface);border-radius:44px;padding:8px;box-shadow:var(--sh-2)}
+.screen{position:relative;height:720px;border-radius:36px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
+svg.i{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+.bar{flex:none;display:flex;align-items:center;gap:10px;padding:16px 20px 10px;min-height:60px}
+.ava{width:28px;height:28px;border-radius:50%;background:var(--ink);color:var(--surface);display:grid;place-items:center;font-size:11px;font-weight:600;letter-spacing:.02em;flex:none}
+.bar .name{font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-.01em;line-height:1.25}
+.bar .name small{display:block;font-size:12.5px;font-weight:400;color:var(--muted);letter-spacing:0}
+.bar .end{margin-left:auto}
+.backb{width:36px;height:36px;border-radius:8px;background:var(--surface);box-shadow:var(--sh-1);display:grid;place-items:center;color:var(--ink);flex:none}
+.body{flex:1;overflow-y:auto;padding:6px 20px 20px;display:flex;flex-direction:column;gap:20px}
+.foot{flex:none;padding:14px 20px 16px;display:flex;flex-direction:column;gap:10px;background:var(--surface);box-shadow:0 -1px 0 var(--line)}
+
+.badge{display:inline-block;font-size:12px;font-weight:500;line-height:18px;padding:0 6px;border-radius:4px;white-space:nowrap}
+.badge.ok{background:var(--ok-bg);color:var(--ok)}
+.badge.neutral{background:var(--neutral-bg);color:var(--neutral)}
+.badge.info{background:var(--primary-tint);color:var(--primary-press)}
+.badge.warn{background:var(--warn-bg);color:var(--warn)}
+
+.card{background:var(--surface);border-radius:12px;box-shadow:var(--sh-1)}
+.acct{padding:18px}
+.restante{margin-top:16px;padding:14px 16px;border-radius:10px;background:var(--primary-tint);display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px}
+.restante .lbl{color:var(--primary-press);font-weight:600}
+.restante .amt{font-size:28px;font-weight:700;letter-spacing:-.03em;line-height:1.1;color:var(--ink)}
+.acct .big{display:block;font-size:34px;font-weight:700;letter-spacing:-.035em;line-height:1.1;color:var(--ink);margin:4px 0 14px}
+.acct ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.acct li{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-radius:6px}
+.acct li>span:first-child{font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-.01em;line-height:1.3;min-width:0;overflow-wrap:anywhere}
+.acct li small{display:block;font-size:12.5px;font-weight:400;color:var(--muted);letter-spacing:0}
+.acct li .v{font-size:15px;font-weight:500;color:var(--ink);white-space:nowrap;line-height:1.3}
+.acct li.fresh{animation:fresh 2s ease-out}
+.opt-note{color:var(--muted);font-weight:400}
+.lbl{font-size:13px;font-weight:500;color:var(--muted)}
+.hero .amt{display:block;font-size:36px;font-weight:700;letter-spacing:-.035em;line-height:1.1;color:var(--ink);margin:4px 0 0;white-space:nowrap}
+.hero .amt.long{font-size:28px}
+.hrows{min-width:0;display:flex;flex-direction:column}
+.hrow{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+.hv{font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
+.ring-wrap{position:relative;display:grid;place-items:center}
+.ring-wrap svg,.mini svg{display:block;transform:rotate(-90deg)}
+.seg{transition:stroke-dasharray .6s var(--ease)}
+.ring-in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15}
+.ring-in b{font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.02em}
+.ring-in small{font-size:10.5px;color:var(--muted)}
+
+.field{display:flex;flex-direction:column;gap:6px}
+.field-head{display:flex;justify-content:space-between;align-items:baseline}
+.field label,.field .flabel{font-size:13.5px;font-weight:500;color:var(--ink)}
+.input{display:flex;align-items:center;gap:8px;height:50px;padding:0 14px;background:var(--surface);border-radius:8px;box-shadow:var(--sh-1);transition:box-shadow .15s}
+.input:focus-within{box-shadow:var(--focus)}
+.input.bad{box-shadow:0 0 0 1px var(--danger),0 0 0 4px rgba(192,18,60,.15)}
+.input span{color:var(--muted);font-size:17px}
+.input em{font-style:normal;font-size:12.5px;color:var(--muted);font-weight:500}
+.input input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:inherit;font-size:18px;font-weight:600;color:var(--ink);letter-spacing:-.01em;font-variant-numeric:tabular-nums;padding:0}
+.input input::placeholder{color:#a3acb9;font-weight:400}
+.hint{font-size:13px;color:var(--muted)}
+.msg-err{font-size:13px;color:var(--danger);font-weight:500}
+.link{color:var(--primary);font-weight:500;font-size:13.5px;align-self:flex-start;padding:4px 0;min-height:28px;border-radius:4px}
+.link:hover{color:var(--ink)}
+.opts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.optb{height:42px;border-radius:8px;background:var(--surface);box-shadow:var(--sh-1);font-size:14px;font-weight:500;color:var(--text);transition:box-shadow .15s,color .15s}
+.optb[aria-pressed="true"]{color:var(--primary);font-weight:600;box-shadow:0 0 0 1.5px var(--primary),0 2px 5px rgba(99,91,255,.18)}
+.tipval{font-size:13.5px;font-weight:500;color:var(--warn)}
+
+.btn{position:relative;height:48px;border-radius:8px;width:100%;font-size:16px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s,transform .1s,box-shadow .15s}
+.btn:active{transform:scale(.99)}
+.btn.primary{background:var(--primary);color:var(--on-primary);box-shadow:var(--sh-btn)}
+.btn.primary:hover{background:var(--primary-press)}
+.btn.primary:disabled{background:var(--primary-mid);box-shadow:none;cursor:default;transform:none}
+.btn.primary:focus-visible{box-shadow:var(--sh-btn),0 0 0 4px rgba(99,91,255,.3)}
+.btn .lockr{position:absolute;right:16px;width:16px;height:16px;opacity:.75}
+.btn.secondary{background:var(--surface);color:var(--ink);box-shadow:var(--sh-1)}
+.btn.quiet{height:40px;font-size:14.5px;font-weight:500;color:var(--muted)}
+.assure{text-align:center;font-size:12.5px;color:var(--muted)}
+
+.center{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px}
+.grow{margin:auto 0}
+.title{font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--ink);line-height:1.25;text-wrap:balance}
+.huge{font-size:38px;font-weight:700;letter-spacing:-.035em;color:var(--ink);line-height:1.1}
+.okc{width:64px;height:64px;border-radius:50%;background:var(--ok-solid);color:#ffffff;display:grid;place-items:center;animation:pop .45s var(--ease)}
+.okc svg{width:30px;height:30px;stroke-width:2.6}
+.icoc{width:56px;height:56px;border-radius:12px;background:var(--surface);box-shadow:var(--sh-1);display:grid;place-items:center;color:var(--primary)}
+.icoc svg{width:26px;height:26px}
+@keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+.kv{padding:2px 16px;align-self:stretch}
+.kv div{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line);font-size:14.5px}
+.kv div:first-child{border-top:0}
+.kv span:last-child{color:var(--ink);font-weight:500}
+.kv .t span:last-child{color:var(--warn)}
+.qr{padding:16px;border-radius:12px}
+.qr canvas{display:block;width:180px;height:180px}
+.status{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:500;color:var(--ink);background:var(--surface);box-shadow:var(--sh-1);border-radius:99px;padding:6px 14px}
+.spin{width:13px;height:13px;border-radius:50%;border:2px solid var(--line-strong);border-top-color:var(--primary);animation:spin .9s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.how{list-style:none;margin:0;padding:4px 16px;display:flex;flex-direction:column;text-align:left;align-self:stretch}
+.how li{display:flex;gap:12px;align-items:center;font-size:14px;padding:11px 0;border-top:1px solid var(--line);color:var(--ink)}
+.how li:first-child{border-top:0}
+.how b{flex:none;width:22px;height:22px;border-radius:50%;background:var(--primary-tint);color:var(--primary-press);display:grid;place-items:center;font-size:12px;font-weight:600}
+.demo{align-self:stretch;border:1px dashed var(--line-strong);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;text-align:center}
+.demo p{font-size:12px;color:var(--muted)}
+.demo button{height:36px;border-radius:8px;background:var(--surface);box-shadow:var(--sh-1);font-size:13.5px;font-weight:500;color:var(--ink)}
+
+/* Caja */
+.h-page{font-size:24px;font-weight:700;letter-spacing:-.03em;color:var(--ink)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mesa{text-align:left;padding:14px;min-height:112px;display:flex;flex-direction:column;justify-content:space-between;gap:10px;transition:box-shadow .15s,transform .1s}
+.mesa:hover{box-shadow:var(--sh-2)}
+.mesa:active{transform:scale(.985)}
+.mesa-top,.mesa-bot{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mesa-bot{align-items:flex-end}
+.mesa b{font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
+.mesa .amt{display:block;font-size:20px;font-weight:700;letter-spacing:-.03em;color:var(--ink);line-height:1.15}
+.mesa small{font-size:12.5px;color:var(--muted)}
+.h-sec{font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-.01em;margin-bottom:8px}
+.pays{list-style:none;margin:0;padding:0 16px}
+.pays li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.pays li:first-child{border-top:0}
+.pays li.fresh{animation:fresh 2s ease-out}
+@keyframes fresh{from{background:var(--ok-bg)}to{background:transparent}}
+.pays .a{font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-.01em;line-height:1.3}
+.pays .a small{display:block;font-size:12.5px;font-weight:400;color:var(--muted);letter-spacing:0}
+.pays .r{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.pays time{font-size:12px;color:var(--muted)}
+.empty-note{font-size:13.5px;color:var(--muted);padding:16px}
+
+/* Hojas inferiores */
+.scrim{position:absolute;inset:0;background:rgba(10,37,64,.4);animation:fade .2s ease-out;display:flex;align-items:flex-end;z-index:5}
+.sheet{width:100%;background:var(--surface);border-radius:16px 16px 0 0;padding:20px 20px 18px;display:flex;flex-direction:column;gap:14px;animation:up .28s var(--ease);box-shadow:0 -8px 30px rgba(10,37,64,.18)}
+.sheet h3{font-size:18px;font-weight:600;letter-spacing:-.02em;color:var(--ink)}
+.sheet p{font-size:14px}
+.opt{display:flex;gap:12px;align-items:center;text-align:left;width:100%;padding:14px;border-radius:8px;box-shadow:var(--sh-1);min-height:64px;transition:box-shadow .15s}
+.opt:hover{box-shadow:0 0 0 1.5px var(--primary),0 2px 5px rgba(99,91,255,.18)}
+.opt .ic{width:36px;height:36px;border-radius:8px;background:var(--primary-tint);color:var(--primary);display:grid;place-items:center;flex:none}
+.opt b{display:block;font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
+.opt small{font-size:13px;color:var(--muted)}
+.opt .go{margin-left:auto;color:#a3acb9}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+
+/* ---------- Sistema ---------- */
+.system{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.panel{padding:22px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.panel h3{font-size:14px;font-weight:600;color:var(--ink)}
+.swatches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.sw{font-size:12.5px;color:var(--muted);line-height:1.35}
+.sw i{display:block;height:44px;border-radius:8px;box-shadow:inset 0 0 0 1px rgba(50,50,93,.08);margin-bottom:6px}
+.sw b{display:block;color:var(--ink);font-weight:600;font-size:13px}
+.types{display:flex;flex-direction:column}
+.types div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border-top:1px solid var(--line);padding:12px 0;color:var(--ink)}
+.types div:first-child{border-top:0;padding-top:0}
+.types small{color:var(--muted);font-size:12.5px;white-space:nowrap}
+.samples{display:flex;flex-direction:column;gap:12px}
+.samples .rowx{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.samples .optb{display:inline-grid;place-items:center;padding:0 16px}
+.rules{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
+.rules li{font-size:14px;padding:11px 0;border-top:1px solid var(--line)}
+.rules li:first-child{border-top:0;padding-top:0}
+.rules b{font-weight:600;color:var(--ink)}
+
+@media (max-width:820px){.system{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:420px){.screen{height:690px}.body,.foot,.bar{padding-inline:16px}.opts{gap:4px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="page">
+  <header class="top">
+    <div>
+      <p class="eyebrow">Referencia de interfaz · prototipo navegable</p>
+      <h1>Pay Share</h1>
+      <p class="lede">Las dos pantallas de la app en tamaño teléfono, conectadas entre sí. Lo que pagas como comensal aparece en la caja. Ningún pago es real.</p>
+    </div>
+    <button class="plain" id="btn-reset" data-a="reset">Reiniciar</button>
+  </header>
+
+  <section class="stage" aria-label="Pantallas">
+    <div class="unit">
+      <div class="unit-head"><h2>Comensal</h2><p>Escaneó el QR de la Mesa 4</p></div>
+      <div class="phone"><div class="screen" id="diner"></div></div>
+    </div>
+    <div class="unit">
+      <div class="unit-head"><h2>Caja</h2><p>El cajero o el mesero</p></div>
+      <div class="phone"><div class="screen" id="caja"></div></div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:16px">
+    <h2>Sistema de diseño</h2>
+    <div class="system">
+      <div class="panel card">
+        <h3>Color</h3>
+        <div class="swatches">
+          <div class="sw"><i style="background:var(--primary)"></i><b>Índigo</b>Acción y selección</div>
+          <div class="sw"><i style="background:var(--ink)"></i><b>Marino</b>Montos y títulos</div>
+          <div class="sw"><i style="background:var(--ok-solid)"></i><b>Verde</b>Pago recibido</div>
+          <div class="sw"><i style="background:var(--warn-bg)"></i><b>Ámbar</b>Propinas</div>
+          <div class="sw"><i style="background:var(--bg)"></i><b>Fondo</b>Gris azulado</div>
+          <div class="sw"><i style="background:var(--danger)"></i><b>Rojo</b>Solo errores</div>
+        </div>
+      </div>
+      <div class="panel card">
+        <h3>Tipografía · Inter</h3>
+        <div class="types">
+          <div><span class="num" style="font-size:36px;font-weight:700;letter-spacing:-.035em;line-height:1">$500.00</span><small>Monto · 36 / 700</small></div>
+          <div><span style="font-size:20px;font-weight:600;letter-spacing:-.02em">Pago recibido</span><small>Título · 20 / 600</small></div>
+          <div><span style="font-size:16px;font-weight:600">Pagar $330.00</span><small>Botón · 16 / 600</small></div>
+          <div><span style="font-size:13.5px;font-weight:500">¿Cuánto pagas tú?</span><small>Etiqueta · 13.5 / 500</small></div>
+        </div>
+      </div>
+      <div class="panel card">
+        <h3>Piezas</h3>
+        <div class="samples">
+          <span class="btn primary" style="pointer-events:none">Pagar $330.00</span>
+          <span class="btn secondary" style="pointer-events:none">Cerrar mesa</span>
+          <div class="rowx">
+            <span class="optb" aria-pressed="true">10%</span><span class="optb">15%</span>
+            <span class="badge ok">Pagado</span><span class="badge neutral">Esperando</span><span class="badge info">Abierta</span>
+          </div>
+        </div>
+      </div>
+      <div class="panel card">
+        <h3>Reglas</h3>
+        <ul class="rules">
+          <li><b>Arriba va la cuenta, como un recibo:</b> el total en grande, un renglón por cada pago con el nombre de quien pagó, y al final el restante.</li>
+          <li><b>Superficies blancas con sombra fina,</b> sin bordes gruesos ni bloques de color.</li>
+          <li><b>Un solo acento:</b> índigo para lo que se toca o está seleccionado.</li>
+          <li><b>El botón dice el monto exacto</b> y lleva candado.</li>
+          <li><b>Los estados son etiquetas pequeñas</b> con texto: Pagado, Esperando, Abierta, Libre.</li>
+          <li><b>La propina empieza en "No".</b> Nunca se agrega dinero que no elegiste.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  var fmt=new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'});
+  function money(c){return fmt.format(c/100);}
+  function toCents(t){t=String(t||'').replace(/[$,\s]/g,'');if(t==='')return 0;if(!/^\d+(\.\d{1,2})?$/.test(t))return NaN;return Math.round(parseFloat(t)*100);}
+  function hhmm(d){return d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});}
+  function $(id){return document.getElementById(id);}
+  var I={
+    back:'<svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
+    go:'<svg class="i" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>',
+    check:'<svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    lock:'<svg class="i lockr" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+    phone:'<svg class="i" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 17.5h2"/></svg>',
+    qr:'<svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2M20 14v6h-6v-2"/></svg>',
+    receipt:'<svg class="i" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>'
+  };
+  var MESA=4, S;
+  function newDiner(){return {view:'pay',sheet:null,amt:'',tipMode:'0',tipCustom:'',name:'',cel:'',payId:null,saved:false};}
+  function init(){
+    var e=new Date(Date.now()-12*60000);
+    S={tables:[1,2,3,4,5,6].map(function(n){return{id:n};}),
+       bills:[{id:11,tableId:2,total:84000,status:'open'},{id:12,tableId:4,total:50000,status:'open'}],
+       pays:[{id:40,billId:11,name:'Miguel',amount:28000,tip:3000,status:'paid',at:e,fresh:false},{id:41,billId:11,name:'Ana',amount:21000,tip:2000,status:'paid',at:e,fresh:false}],
+       billSeq:12,paySeq:41,d:newDiner(),c:{view:'list',tableId:null,sheet:null,total:'',err:''}};
+  }
+  function bill(tid){return S.bills.find(function(b){return b.tableId===tid&&b.status==='open';})||null;}
+  function paid(b){return S.pays.filter(function(x){return x.billId===b.id&&x.status==='paid';});}
+  function tot(b){var p=0,t=0;paid(b).forEach(function(x){p+=x.amount;t+=x.tip;});return{paid:p,tips:t,rem:Math.max(0,b.total-p)};}
+  function tname(id){return 'Mesa '+id;}
+  function calc(){
+    var d=S.d,b=bill(MESA),part=toCents(d.amt),tip;
+    if(d.tipMode==='otra') tip=toCents(d.tipCustom); else tip=isNaN(part)?0:Math.round(part*(+d.tipMode)/100);
+    var rem=b?tot(b).rem:0,err='';
+    if(isNaN(part)) err='Escribe solo el monto, por ejemplo 300.';
+    else if(part>rem) err='El restante es '+money(rem)+'.';
+    else if(isNaN(tip)) err='La propina debe ser un monto, por ejemplo 30.';
+    return{part:part,tip:tip,err:err,ok:!err&&part>0,sum:(isNaN(part)||isNaN(tip))?0:part+tip};
+  }
+
+  function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  /* La cuenta: total arriba, un renglón por pago con nombre, restante al final */
+  function acct(b,t,restLabel,staff){
+    var ps=S.pays.filter(function(p){return p.billId===b.id&&(staff||p.status==='paid');});
+    return '<div class="card acct"><span class="lbl">Total de la cuenta</span><span class="big num">'+money(b.total)+'</span>'+
+      (ps.length?'<ul>'+ps.map(function(p){
+        var ok=p.status==='paid',who=p.name?esc(p.name):'Un comensal';
+        return '<li class="'+(p.fresh?'fresh':'')+'"><span>'+who+
+          '<small class="num">'+(ok?'Propina '+money(p.tip)+(staff?' · '+hhmm(p.at):''):'Aún no paga')+'</small></span>'+
+          (ok?'<span class="v num">'+money(p.amount)+'</span>':'<span class="badge neutral">Esperando</span>')+'</li>';}).join('')+'</ul>':'')+
+      '<div class="restante"><span class="lbl">'+restLabel+'</span><span class="amt num">'+(t.rem===0?'Cubierta':money(t.rem))+'</span></div></div>';
+  }
+
+  var A={
+    reset:function(){init();},
+    all:function(){var b=bill(MESA);if(b)S.d.amt=(tot(b).rem/100).toFixed(2);},
+    tip:function(x){S.d.tipMode=x.v;},
+    pay:function(){if(calc().ok)S.d.sheet='method';},
+    closeSheet:function(){S.d.sheet=null;},
+    mQr:function(){createPay('qr');},
+    mPn:function(){S.d.sheet='cel';},
+    sendPn:function(){if(/^\d{10}$/.test(S.d.cel))createPay('pn');},
+    toQr:function(){S.d.view='qr';},
+    change:function(){var p=S.pays.find(function(x){return x.id===S.d.payId;});if(p&&p.status==='pending')S.pays.splice(S.pays.indexOf(p),1);S.d.view='pay';S.d.payId=null;S.d.saved=false;},
+    save:function(){S.d.saved=true;},
+    sim:function(){
+      var p=S.pays.find(function(x){return x.id===S.d.payId;});if(!p)return;
+      setTimeout(function(){p.status='paid';p.at=new Date();p.fresh=true;if(S.d.payId===p.id)S.d.view='done';render();setTimeout(function(){p.fresh=false;},2100);},900);
+    },
+    done:function(){S.d=newDiner();},
+    mesa:function(x){var id=+x.id;S.c.tableId=id;S.c.err='';if(bill(id)){S.c.view='detail';}else{S.c.sheet='open';S.c.total='';}},
+    list:function(){S.c.view='list';S.c.sheet=null;},
+    cSheetOff:function(){S.c.sheet=null;},
+    open:function(){
+      var v=toCents(S.c.total);
+      if(!(v>0)){S.c.err='Escribe el total, por ejemplo 500.';return;}
+      S.billSeq++;S.bills.push({id:S.billSeq,tableId:S.c.tableId,total:v,status:'open'});
+      S.c.sheet=null;S.c.view='detail';S.c.err='';
+    },
+    askClose:function(){S.c.sheet='close';},
+    close:function(){var b=bill(S.c.tableId);if(b){b.status='closed';if(b.tableId===MESA)S.d=newDiner();}S.c.sheet=null;S.c.view='list';}
+  };
+  function createPay(method){
+    var k=calc(),b=bill(MESA);if(!k.ok||!b)return;
+    S.paySeq++;S.pays.push({id:S.paySeq,billId:b.id,name:S.d.name.trim(),amount:k.part,tip:k.tip,status:'pending',at:new Date(),fresh:false});
+    S.d.payId=S.paySeq;S.d.sheet=null;S.d.view=method;
+  }
+
+  /* ---------- Comensal ---------- */
+  function shopBar(end){return '<div class="bar"><span class="ava">LC</span><span class="name">La Ceiba</span>'+(end?'<span class="end">'+end+'</span>':'')+'</div>';}
+  function backBar(title,sub,a,label,id){
+    return '<div class="bar"><button class="backb" id="'+id+'" data-a="'+a+'" aria-label="'+label+'">'+I.back+'</button><span class="name num">'+title+'<small>'+sub+'</small></span></div>';
+  }
+  function demoBox(){return '<div class="demo"><p>Solo en este prototipo. En la app real, aquí la persona paga en su banco.</p><button id="d-sim" data-a="sim">Simular pago en el banco</button></div>';}
+  function dinerHTML(){
+    var d=S.d,b=bill(MESA),top=shopBar('<span class="badge neutral">'+tname(MESA)+'</span>');
+    if(!b){
+      return top+'<div class="body"><div class="center grow"><div class="icoc">'+I.receipt+'</div><p class="title">Esta mesa no tiene cuenta abierta</p><p>Pídela a tu mesero.</p></div></div>';
+    }
+    var t=tot(b),p=S.pays.find(function(x){return x.id===d.payId;});
+    if(d.view==='pay'){
+      var k=calc(),hero=acct(b,t,'Restante',false);
+      if(t.rem===0){
+        return top+'<div class="body">'+hero+'<div class="center grow"><div class="okc">'+I.check+'</div><p class="title">No falta nada por pagar</p><p>La cuenta ya está cubierta.</p></div></div>';
+      }
+      var h=top+'<div class="body">'+hero+
+        '<div class="field"><label for="d-amt">¿Cuánto pagas tú?</label>'+
+          '<div class="input'+(k.err?' bad':'')+'" id="d-amt-box"><span>$</span><input id="d-amt" inputmode="decimal" autocomplete="off" placeholder="0.00" value="'+d.amt+'"><em>MXN</em></div>'+
+          '<p class="msg-err" id="d-err" role="alert"'+(k.err?'':' hidden')+'>'+k.err+'</p>'+
+          '<button class="link" id="d-all" data-a="all">Pagar todo el restante</button></div>'+
+        '<div class="field"><div class="field-head"><span class="flabel">Propina</span><span class="tipval num" id="d-tipval">'+(k.tip>0?'+ '+money(k.tip):'')+'</span></div>'+
+          '<div class="opts" role="group" aria-label="Propina">'+
+            [['0','No'],['10','10%'],['15','15%'],['20','20%'],['otra','Otra']].map(function(o){
+              return '<button class="optb" id="d-tip-'+o[0]+'" data-a="tip" data-v="'+o[0]+'" aria-pressed="'+(d.tipMode===o[0])+'">'+o[1]+'</button>';}).join('')+'</div>'+
+          (d.tipMode==='otra'?'<div class="input"><span>$</span><input id="d-tipc" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-label="Propina en pesos" value="'+d.tipCustom+'"><em>MXN</em></div>':'')+
+        '</div>'+
+        '<div class="field"><label for="d-name">Tu nombre <span class="opt-note">(opcional)</span></label>'+
+          '<div class="input"><input id="d-name" style="font-size:16px;font-weight:500" maxlength="20" autocomplete="given-name" placeholder="Para que la mesa vea quién pagó" value="'+esc(d.name)+'"></div></div>'+
+        '</div>'+
+        '<div class="foot"><button class="btn primary" id="d-pay" data-a="pay"'+(k.ok?'':' disabled')+'><span id="d-pay-t">'+(k.ok?'Pagar '+money(k.sum):'Pagar')+'</span>'+I.lock+'</button>'+
+          '<p class="assure">Pagas desde la app de tu banco · Sin comisión</p></div>';
+      if(d.sheet==='method'){
+        h+='<div class="scrim" data-a="closeSheet"><div class="sheet" data-stop="1"><h3>¿Cómo quieres pagar?</h3>'+
+          '<button class="opt" id="d-mpn" data-a="mPn"><span class="ic">'+I.phone+'</span><span><b>Cobro a mi celular</b><small>Te llega a la app de tu banco</small></span><span class="go">'+I.go+'</span></button>'+
+          '<button class="opt" id="d-mqr" data-a="mQr"><span class="ic">'+I.qr+'</span><span><b>Código QR</b><small>Para guardarlo o escanearlo</small></span><span class="go">'+I.go+'</span></button>'+
+          '<button class="btn quiet" id="d-mx" data-a="closeSheet">Cancelar</button></div></div>';
+      } else if(d.sheet==='cel'){
+        var okc=/^\d{10}$/.test(d.cel);
+        h+='<div class="scrim" data-a="closeSheet"><div class="sheet" data-stop="1"><h3>¿A qué celular enviamos el cobro?</h3>'+
+          '<p>El que tienes registrado en tu banco. Solo lo usamos para este cobro y no lo guardamos.</p>'+
+          '<div class="input"><input class="num" id="d-cel" inputmode="numeric" maxlength="10" autocomplete="tel-national" placeholder="10 dígitos" aria-label="Celular a 10 dígitos" value="'+d.cel+'"></div>'+
+          '<button class="btn primary" id="d-send" data-a="sendPn"'+(okc?'':' disabled')+'>Enviar cobro de '+money(k.sum)+'</button>'+
+          '<button class="btn quiet" id="d-celx" data-a="closeSheet">Cancelar</button></div></div>';
+      }
+      return h;
+    }
+    if(d.view==='done'){
+      return top+'<div class="body"><div class="center grow"><div class="okc">'+I.check+'</div><p class="title">Pago recibido</p>'+
+        '<p class="huge num">'+money(p.amount+p.tip)+'</p>'+
+        '<div class="card kv"><div><span>Tu parte</span><span class="num">'+money(p.amount)+'</span></div>'+
+          '<div class="t"><span>Propina</span><span class="num">'+money(p.tip)+'</span></div>'+
+          '<div><span>Restante de la mesa</span><span class="num">'+money(t.rem)+'</span></div></div></div></div>'+
+        '<div class="foot"><button class="btn primary" id="d-done" data-a="done">Listo</button></div>';
+    }
+    var sum=money(p.amount+p.tip),bar=backBar('Pagar '+sum,tname(MESA)+' · cuenta '+b.id,'change','Cambiar monto','d-back');
+    if(d.view==='qr'){
+      return bar+'<div class="body"><div class="center">'+
+        '<div class="card qr"><canvas id="qr" width="180" height="180" aria-label="Código QR CoDi de ejemplo"></canvas></div>'+
+        '<span class="status" role="status"><span class="spin"></span>Esperando tu pago · vence en 15 min</span>'+
+        '<ol class="card how"><li><b>1</b>Guarda el código en tus fotos</li><li><b>2</b>Abre la app de tu banco y entra a CoDi</li><li><b>3</b>Elige leer el código desde una imagen</li></ol>'+
+        demoBox()+'</div></div>'+
+        '<div class="foot"><button class="btn primary" id="d-save" data-a="save">'+(d.saved?I.check+'Guardado en tus fotos':'Guardar código')+'</button></div>';
+    }
+    return bar+'<div class="body"><div class="center grow"><div class="icoc">'+I.phone+'</div>'+
+      '<p class="title">Revisa la app de tu banco</p><p>Te enviamos un cobro por <b class="num" style="color:var(--ink)">'+sum+'</b> al celular terminado en '+d.cel.slice(-4)+'.</p>'+
+      '<span class="status" role="status"><span class="spin"></span>Esperando tu pago</span>'+demoBox()+'</div></div>'+
+      '<div class="foot"><button class="btn secondary" id="d-toqr" data-a="toQr">Mejor usar código QR</button></div>';
+  }
+
+  /* ---------- Caja ---------- */
+  function cajaHTML(){
+    var c=S.c,h;
+    if(c.view==='list'){
+      h=shopBar('<span class="badge info">Caja</span>')+'<div class="body"><p class="h-page">Mesas</p><div class="grid">'+S.tables.map(function(t){
+        var b=bill(t.id);
+        if(!b) return '<button class="card mesa" id="c-m'+t.id+'" data-a="mesa" data-id="'+t.id+'"><span class="mesa-top"><b>'+tname(t.id)+'</b><span class="badge neutral">Libre</span></span><small>Toca para abrir cuenta</small></button>';
+        var x=tot(b);
+        return '<button class="card mesa" id="c-m'+t.id+'" data-a="mesa" data-id="'+t.id+'"><span class="mesa-top"><b>'+tname(t.id)+'</b>'+(x.rem===0?'<span class="badge ok">Cubierta</span>':'<span class="badge info">Abierta</span>')+'</span>'+
+          '<span><span class="amt num">'+money(x.rem)+'</span><small>restante de '+money(b.total)+'</small></span></button>';
+      }).join('')+'</div></div>';
+    } else {
+      var b=bill(c.tableId),x=tot(b),ps=S.pays.filter(function(p){return p.billId===b.id;}).slice().reverse();
+      h=backBar(tname(c.tableId),'Cuenta '+b.id,'list','Volver a las mesas','c-back')+
+        '<div class="body">'+
+          acct(b,x,'Restante en efectivo',true)+
+          '<div class="card kv"><div><span>Pagado por transferencia</span><span class="num">'+money(x.paid)+'</span></div>'+
+            '<div class="t"><span>Propinas, aparte</span><span class="num">'+money(x.tips)+'</span></div></div></div>'+
+        '<div class="foot"><button class="btn secondary" id="c-close" data-a="askClose">Cerrar mesa</button></div>';
+      if(c.sheet==='close'){
+        h+='<div class="scrim" data-a="cSheetOff"><div class="sheet" data-stop="1"><h3>¿Cerrar la '+tname(c.tableId)+'?</h3>'+
+          '<p>'+(x.rem>0?'Confirma que ya cobraste <b class="num" style="color:var(--ink)">'+money(x.rem)+'</b> en efectivo.':'La cuenta está cubierta.')+' La mesa quedará libre.</p>'+
+          '<button class="btn primary" id="c-yes" data-a="close">Sí, cerrar mesa</button><button class="btn quiet" id="c-no" data-a="cSheetOff">Cancelar</button></div></div>';
+      }
+    }
+    if(c.sheet==='open'){
+      h+='<div class="scrim" data-a="cSheetOff"><form class="sheet" data-stop="1" data-form="open"><h3>Abrir cuenta · '+tname(c.tableId)+'</h3>'+
+        '<div class="field"><label for="c-total">Total de la cuenta</label>'+
+        '<div class="input'+(c.err?' bad':'')+'"><span>$</span><input id="c-total" inputmode="decimal" autocomplete="off" placeholder="0.00" value="'+c.total+'"><em>MXN</em></div>'+
+        (c.err?'<p class="msg-err" role="alert">'+c.err+'</p>':'')+'</div>'+
+        '<button class="btn primary" id="c-open" type="submit">Abrir cuenta</button><button class="btn quiet" type="button" id="c-openx" data-a="cSheetOff">Cancelar</button></form></div>';
+    }
+    return h;
+  }
+
+  function drawQR(cv,seed){
+    var n=25,s=cv.width/n,g=cv.getContext('2d'),x=seed*7919+13;
+    function r(){x=(x*1103515245+12345)&0x7fffffff;return x/0x7fffffff;}
+    g.fillStyle='#ffffff';g.fillRect(0,0,cv.width,cv.height);g.fillStyle='#0a2540';
+    for(var a=0;a<n;a++)for(var b=0;b<n;b++){if(r()>.52)g.fillRect(b*s,a*s,s+.5,s+.5);}
+    [[0,0],[n-7,0],[0,n-7]].forEach(function(o){
+      g.fillStyle='#ffffff';g.fillRect((o[0]-.5)*s,(o[1]-.5)*s,8*s,8*s);
+      g.fillStyle='#0a2540';g.fillRect(o[0]*s,o[1]*s,7*s,7*s);
+      g.fillStyle='#ffffff';g.fillRect((o[0]+1)*s,(o[1]+1)*s,5*s,5*s);
+      g.fillStyle='#0a2540';g.fillRect((o[0]+2)*s,(o[1]+2)*s,3*s,3*s);
+    });
+  }
+  function paint(id,html){
+    var el=$(id),old=el.querySelector('.body'),top=old?old.scrollTop:0;
+    el.innerHTML=html;var nb=el.querySelector('.body');if(nb)nb.scrollTop=top;
+  }
+  function render(){
+    var id=document.activeElement&&document.activeElement.id;
+    paint('diner',dinerHTML());paint('caja',cajaHTML());
+    var cv=$('qr');if(cv)drawQR(cv,S.d.payId||1);
+    var el=id&&$(id);if(el&&!el.disabled)el.focus({preventScroll:true});
+  }
+  function refreshPay(){
+    var k=calc(),btn=$('d-pay');if(!btn)return;
+    btn.disabled=!k.ok;$('d-pay-t').textContent=k.ok?'Pagar '+money(k.sum):'Pagar';
+    var e=$('d-err');e.textContent=k.err;e.hidden=!k.err;
+    $('d-amt-box').classList.toggle('bad',!!k.err);
+    $('d-tipval').textContent=k.tip>0?'+ '+money(k.tip):'';
+  }
+
+  document.addEventListener('click',function(ev){
+    var b=ev.target.closest('[data-a]');if(!b)return;
+    if(b.classList.contains('scrim')&&ev.target.closest('[data-stop]'))return;
+    var f=A[b.dataset.a];if(!f)return;
+    f(b.dataset);render();
+    if(b.dataset.a==='mPn'){var c=$('d-cel');if(c)c.focus({preventScroll:true});}
+    if(b.dataset.a==='mesa'){var t=$('c-total');if(t)t.focus({preventScroll:true});}
+  });
+  document.addEventListener('submit',function(ev){
+    if(ev.target.dataset.form==='open'){ev.preventDefault();A.open();render();}
+  });
+  document.addEventListener('input',function(ev){
+    var el=ev.target;
+    if(el.id==='d-amt'){S.d.amt=el.value;refreshPay();}
+    else if(el.id==='d-tipc'){S.d.tipCustom=el.value;refreshPay();}
+    else if(el.id==='d-cel'){S.d.cel=el.value.replace(/\D/g,'');el.value=S.d.cel;$('d-send').disabled=!/^\d{10}$/.test(S.d.cel);}
+    else if(el.id==='d-name'){S.d.name=el.value;}
+    else if(el.id==='c-total'){S.c.total=el.value;}
+  });
+  init();render();
+})();
+</script>
