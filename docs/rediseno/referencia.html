@@ -1,0 +1,896 @@
+<title>Rediseño Pay Share</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: teléfono interactivo a la izquierda, notas de diseño a la derecha; en móvil se apilan. */
+:root{
+  --paper-2:#fafbfd; --stub-a:#f7f9fd; --stub-b:#edf1f8; --stub-glow:rgba(0,113,227,.10);
+  --field-a:rgba(255,255,255,.96); --field-b:rgba(255,255,255,.72); --field-edge:#ffffff;
+  --page:#eceef3; --fg:#1d1d1f; --fg2:#6e6e73; --fg3:#8a8a8f;
+  --screen:#f2f2f7; --card:#ffffff; --paper:#ffffff;
+  --sep:rgba(60,60,67,.16); --sep-strong:rgba(60,60,67,.32); --perf:rgba(60,60,67,.24);
+  --fill:rgba(118,118,128,.12); --thumb:#ffffff;
+  --glass:rgba(255,255,255,.62); --glass-edge:rgba(255,255,255,.9); --glass-line:rgba(0,0,0,.06);
+  --sheet:rgba(250,250,252,.86);
+  --accent:#0071e3; --accent-tint:rgba(0,113,227,.10);
+  --ok:#1f8a3b; --ok-tint:rgba(52,199,89,.16); --ok-solid:#34c759;
+  --warn:#b25000; --warn-tint:rgba(255,149,0,.14);
+  --danger:#d70015;
+  --btn:#1d1d1f; --on-btn:#ffffff;
+  --tshadow:rgba(28,40,80,.14);
+  --blob1:rgba(0,122,255,.30); --blob2:rgba(90,200,250,.26); --blob3:rgba(255,179,128,.24);
+  --bezel:#1d1d1f; --bezel-edge:#3a3a3c;
+  --qr-paper:#ffffff; --qr-ink:#111113;
+  --scrim:rgba(0,0,0,.22);
+  --spring:cubic-bezier(.32,.72,0,1);
+  --font:-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, system-ui, "Segoe UI", Roboto, sans-serif;
+  --mono:"SF Mono", "Geist Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root.t-auto{
+  --paper-2:#19191c; --stub-a:#212125; --stub-b:#17171a; --stub-glow:rgba(41,151,255,.16);
+  --field-a:rgba(46,46,50,.78); --field-b:rgba(28,28,30,.64); --field-edge:rgba(255,255,255,.08);
+  --page:#08080a; --fg:#f5f5f7; --fg2:#a1a1a6; --fg3:#8d8d93;
+  --screen:#000000; --card:#1c1c1e; --paper:#1c1c1e;
+  --sep:rgba(84,84,88,.55); --sep-strong:rgba(120,120,128,.6); --perf:rgba(235,235,245,.22);
+  --fill:rgba(118,118,128,.24); --thumb:#636366;
+  --glass:rgba(30,30,32,.58); --glass-edge:rgba(255,255,255,.10); --glass-line:rgba(255,255,255,.06);
+  --sheet:rgba(36,36,38,.86);
+  --accent:#2997ff; --accent-tint:rgba(41,151,255,.18);
+  --ok:#30d158; --ok-tint:rgba(48,209,88,.18); --ok-solid:#30d158;
+  --warn:#ff9f0a; --warn-tint:rgba(255,159,10,.18);
+  --danger:#ff453a;
+  --btn:#f5f5f7; --on-btn:#000000;
+  --tshadow:rgba(0,0,0,.6);
+  --blob1:rgba(10,132,255,.30); --blob2:rgba(100,210,255,.14); --blob3:rgba(255,159,10,.12);
+  --bezel:#1c1c1e; --bezel-edge:#3a3a3c;
+  --scrim:rgba(0,0,0,.5);
+  color-scheme:dark;
+}}
+:root.t-dark{
+  --paper-2:#19191c; --stub-a:#212125; --stub-b:#17171a; --stub-glow:rgba(41,151,255,.16);
+  --field-a:rgba(46,46,50,.78); --field-b:rgba(28,28,30,.64); --field-edge:rgba(255,255,255,.08);
+  --page:#08080a; --fg:#f5f5f7; --fg2:#a1a1a6; --fg3:#8d8d93;
+  --screen:#000000; --card:#1c1c1e; --paper:#1c1c1e;
+  --sep:rgba(84,84,88,.55); --sep-strong:rgba(120,120,128,.6); --perf:rgba(235,235,245,.22);
+  --fill:rgba(118,118,128,.24); --thumb:#636366;
+  --glass:rgba(30,30,32,.58); --glass-edge:rgba(255,255,255,.10); --glass-line:rgba(255,255,255,.06);
+  --sheet:rgba(36,36,38,.86);
+  --accent:#2997ff; --accent-tint:rgba(41,151,255,.18);
+  --ok:#30d158; --ok-tint:rgba(48,209,88,.18); --ok-solid:#30d158;
+  --warn:#ff9f0a; --warn-tint:rgba(255,159,10,.18);
+  --danger:#ff453a;
+  --btn:#f5f5f7; --on-btn:#000000;
+  --tshadow:rgba(0,0,0,.6);
+  --blob1:rgba(10,132,255,.30); --blob2:rgba(100,210,255,.14); --blob3:rgba(255,159,10,.12);
+  --bezel:#1c1c1e; --bezel-edge:#3a3a3c;
+  --scrim:rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{background:var(--page); color:var(--fg); font-family:var(--font); font-size:15px; line-height:1.45; -webkit-font-smoothing:antialiased;
+  padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); padding-block:40px 64px}
+button,input{font:inherit; color:inherit}
+button{cursor:pointer; -webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.num,.mono{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--mono)}
+
+/* ---------- Página ---------- */
+.wrap{max-width:1040px; margin:0 auto; display:flex; flex-direction:column; gap:32px}
+.top{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:20px}
+.top h1{margin:0; font-size:34px; line-height:1.1; font-weight:700; letter-spacing:-.025em; text-wrap:balance}
+.top p{margin:6px 0 0; color:var(--fg2); font-size:16px; max-width:52ch}
+.controls{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.stage{display:grid; grid-template-columns:auto minmax(0,1fr); gap:56px; align-items:start}
+@media (max-width:900px){ .stage{grid-template-columns:minmax(0,1fr); justify-items:center; gap:40px} }
+
+.notes{display:flex; flex-direction:column; gap:28px; padding-top:12px; min-width:0; max-width:460px}
+.notes h2{margin:0; font-size:13px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--fg2)}
+.note{display:grid; grid-template-columns:36px minmax(0,1fr); gap:14px}
+.note .ico{width:36px; height:36px; border-radius:10px; display:grid; place-items:center; background:var(--card); color:var(--accent); box-shadow:0 0 0 .5px var(--sep), 0 2px 6px rgba(0,0,0,.05)}
+.note h3{margin:0 0 3px; font-size:16px; font-weight:600; letter-spacing:-.01em}
+.note p{margin:0; color:var(--fg2); font-size:14.5px}
+.try{background:var(--card); border-radius:18px; padding:16px 18px; box-shadow:0 0 0 .5px var(--sep)}
+.try ol{margin:8px 0 0; padding-left:20px; color:var(--fg2); font-size:14.5px; display:flex; flex-direction:column; gap:4px}
+.try b{color:var(--fg); font-weight:600}
+.swatches{display:flex; flex-wrap:wrap; gap:8px}
+.sw{display:flex; align-items:center; gap:8px; padding:6px 10px 6px 6px; border-radius:999px; background:var(--card); box-shadow:0 0 0 .5px var(--sep); font-size:12.5px; color:var(--fg2)}
+.sw i{width:20px; height:20px; border-radius:50%; box-shadow:inset 0 0 0 .5px rgba(0,0,0,.15)}
+
+/* ---------- Dispositivo ---------- */
+.device{width:390px; max-width:100%; height:844px; padding:11px; border-radius:58px; background:var(--bezel);
+  box-shadow:inset 0 0 0 1.5px var(--bezel-edge), 0 30px 80px -20px rgba(20,30,60,.35), 0 8px 24px rgba(0,0,0,.12)}
+.screen{position:relative; height:100%; border-radius:47px; overflow:hidden; background:var(--screen); isolation:isolate}
+@media (max-width:480px){ .device{padding:0; border-radius:30px; height:800px; box-shadow:0 12px 40px -12px rgba(20,30,60,.3)} .screen{border-radius:30px} }
+
+.aurora{position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden}
+.aurora i{position:absolute; border-radius:50%; filter:blur(60px)}
+.aurora i:nth-child(1){width:320px; height:300px; left:-120px; top:-60px; background:var(--blob1)}
+.aurora i:nth-child(2){width:300px; height:300px; right:-140px; top:260px; background:var(--blob2)}
+.aurora i:nth-child(3){width:280px; height:240px; left:-60px; bottom:-80px; background:var(--blob3)}
+
+.app{position:absolute; inset:0; z-index:1; display:flex; flex-direction:column}
+.enter{animation:enter .5s var(--spring) both}
+.enter-back{animation:enterBack .5s var(--spring) both}
+@keyframes enter{from{opacity:.001; transform:translateX(22px)}}
+@keyframes enterBack{from{opacity:.001; transform:translateX(-22px)}}
+
+.scroll{flex:1; overflow-y:auto; overflow-x:hidden; padding:76px 16px 156px; display:flex; flex-direction:column; gap:22px; scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+
+.glass{background:var(--glass); -webkit-backdrop-filter:blur(24px) saturate(180%); backdrop-filter:blur(24px) saturate(180%);
+  box-shadow:inset 0 .5px 0 var(--glass-edge), 0 0 0 .5px var(--glass-line)}
+
+.nav{position:absolute; z-index:5; top:10px; left:10px; right:10px; height:52px; border-radius:26px; display:flex; align-items:center; gap:10px; padding:0 8px 0 10px}
+.logo{width:34px; height:34px; flex:none; border-radius:10px; display:grid; place-items:center; background:linear-gradient(160deg,#4aa3ff,#0060df 70%); box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 4px 10px -4px rgba(0,96,223,.6)}
+.nav-title .codi{font-size:12px; color:var(--fg2)}
+.avatar{width:32px; height:32px; flex:none; border-radius:50%; display:grid; place-items:center; font-size:12px; font-weight:600; color:#fff; background:linear-gradient(160deg,#3a3a3c,#111113)}
+.nav-title{display:flex; flex-direction:column; min-width:0; line-height:1.2}
+.nav-title b{font-size:15px; font-weight:600; letter-spacing:-.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.nav-title small{font-size:12px; color:var(--fg2)}
+.chip{margin-left:auto; font-size:13px; font-weight:600; padding:6px 12px; border-radius:999px; background:var(--fill); color:var(--fg)}
+.round{width:36px; height:36px; flex:none; border-radius:50%; border:0; display:grid; place-items:center; background:var(--fill); color:var(--fg); transition:transform .2s var(--spring), background .2s}
+.round:active{transform:scale(.9)}
+
+.bar{position:absolute; z-index:5; left:0; right:0; bottom:0; padding:12px 16px 22px; display:flex; flex-direction:column; gap:8px; border-radius:28px 28px 0 0}
+.trust{margin:0; display:flex; align-items:center; justify-content:center; gap:5px; font-size:12.5px; color:var(--fg2)}
+
+/* ---------- Botones ---------- */
+.btn{height:54px; width:100%; border:0; border-radius:999px; display:flex; align-items:center; justify-content:center; gap:8px;
+  font-size:17px; font-weight:600; letter-spacing:-.01em; transition:transform .25s var(--spring), background .2s, color .2s, opacity .2s}
+.btn:active:not(:disabled){transform:scale(.97)}
+.btn-primary{background:var(--btn); color:var(--on-btn); box-shadow:0 8px 20px -8px rgba(0,0,0,.4)}
+.btn-primary:disabled{background:var(--fill); color:var(--fg3); box-shadow:none; cursor:default}
+.btn-tinted{background:var(--fill); color:var(--accent)}
+.btn-quiet{height:44px; background:transparent; color:var(--accent); font-weight:500}
+.btn-sm{height:40px; font-size:15px}
+
+/* ---------- Ticket ---------- */
+.ticket{display:flex; flex-direction:column; filter:drop-shadow(0 1px 1px rgba(0,0,0,.05)) drop-shadow(0 14px 22px var(--tshadow))}
+.t-body,.t-stub{position:relative}
+.t-body{background:linear-gradient(180deg,var(--paper),var(--paper-2)); border-radius:20px 20px 0 0; padding:20px 20px 18px; display:flex; flex-direction:column; gap:12px;
+  -webkit-mask:radial-gradient(circle at 0 100%,#0000 11px,#000 11.5px) left/51% 100% no-repeat, radial-gradient(circle at 100% 100%,#0000 11px,#000 11.5px) right/51% 100% no-repeat;
+  mask:radial-gradient(circle at 0 100%,#0000 11px,#000 11.5px) left/51% 100% no-repeat, radial-gradient(circle at 100% 100%,#0000 11px,#000 11.5px) right/51% 100% no-repeat}
+.t-stub{background:radial-gradient(90% 140% at 100% 100%,var(--stub-glow),transparent 62%),linear-gradient(180deg,var(--stub-a),var(--stub-b)); padding:18px 20px 14px; display:flex; flex-direction:column; gap:12px;
+  -webkit-mask:radial-gradient(circle at 0 0,#0000 11px,#000 11.5px) left/51% 100% no-repeat, radial-gradient(circle at 100% 0,#0000 11px,#000 11.5px) right/51% 100% no-repeat;
+  mask:radial-gradient(circle at 0 0,#0000 11px,#000 11.5px) left/51% 100% no-repeat, radial-gradient(circle at 100% 0,#0000 11px,#000 11.5px) right/51% 100% no-repeat}
+.t-stub::before{content:""; position:absolute; top:0; left:18px; right:18px; border-top:1.5px dashed var(--perf)}
+.t-edge{height:7px; background:radial-gradient(circle at 5px 0, var(--stub-b) 5px, transparent 5.5px) 0 0/10px 7px repeat-x}
+.t-head{text-align:center; display:flex; flex-direction:column; gap:2px}
+.t-head .brand{font-family:var(--mono); font-size:12.5px; font-weight:600; letter-spacing:.2em; color:var(--fg)}
+.t-head .meta{font-family:var(--mono); font-size:11.5px; color:var(--fg2)}
+.t-rule{border-top:1.5px dashed var(--sep)}
+.t-line{display:flex; justify-content:space-between; align-items:baseline; gap:12px}
+.t-line .k{font-size:14.5px; color:var(--fg)}
+.t-amt{font-family:var(--mono); font-size:14.5px; font-variant-numeric:tabular-nums; white-space:nowrap; color:var(--fg)}
+.t-total .t-amt{font-weight:600; font-size:15px}
+.t-label{font-size:11px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--fg2)}
+.t-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px}
+.t-row{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; border-radius:10px; margin:0 -8px; padding:0 8px}
+.t-who{display:flex; flex-direction:column; min-width:0}
+.t-who b{font-size:15px; font-weight:600; line-height:1.3}
+.t-who small{font-family:var(--mono); font-size:11.5px; color:var(--fg2)}
+.t-row.you{background:var(--accent-tint); padding:7px 8px; color:var(--accent); animation:fadeIn .3s ease both}
+.t-row.you b,.t-row.you small,.t-row.you .t-amt{color:var(--accent)}
+.t-row.fresh{animation:fresh 2.4s ease both}
+@keyframes fresh{0%,40%{background:var(--ok-tint)} 100%{background:transparent}}
+@keyframes fadeIn{from{opacity:0; transform:translateY(-4px)}}
+.t-empty{margin:0; font-size:13.5px; color:var(--fg2)}
+.t-rest{display:flex; justify-content:space-between; align-items:flex-end; gap:12px}
+.t-rest .l{display:flex; flex-direction:column; gap:2px; padding-bottom:5px}
+.t-rest .l small{font-size:12.5px; color:var(--fg2)}
+.t-big{font-family:var(--mono); font-size:38px; font-weight:600; line-height:1; letter-spacing:-.045em; font-variant-numeric:tabular-nums; white-space:nowrap}
+.t-big.ok{color:var(--ok); font-family:var(--font); letter-spacing:-.02em; font-size:30px; display:flex; align-items:center; gap:6px}
+.t-bar{display:flex; gap:3px; height:6px}
+.t-bar span{border-radius:3px; transition:flex-grow .5s var(--spring)}
+.t-bar .p{background:var(--fg)} .t-bar .y{background:var(--accent)} .t-bar .r{background:var(--fill)}
+.t-cap{margin:0; font-size:12.5px; color:var(--fg2)}
+.t-cap b{color:var(--fg); font-weight:600}
+
+/* ---------- Formulario ---------- */
+.group{border-radius:18px; overflow:hidden}
+.group,.amount-card,.field,.tcard:not(.free){background:linear-gradient(180deg,var(--field-a),var(--field-b));
+  -webkit-backdrop-filter:blur(20px) saturate(160%); backdrop-filter:blur(20px) saturate(160%);
+  box-shadow:inset 0 1px 0 var(--field-edge), 0 0 0 .5px var(--glass-line), 0 8px 20px -14px var(--tshadow)}
+.field{display:block; width:100%; height:52px; border:0; outline:0; border-radius:16px; padding:0 16px; font-size:16px; color:var(--fg)}
+.field::placeholder{color:var(--fg3)}
+.field:focus-visible{box-shadow:inset 0 1px 0 var(--field-edge), 0 0 0 2px var(--accent)}
+.field-head label{font-size:14px; font-weight:500; color:var(--fg2)}
+.field-head .soft{color:var(--fg3); font-weight:400}
+.section{display:flex; flex-direction:column}
+.row{display:flex; align-items:center; gap:12px; min-height:50px; padding:0 16px}
+.row + .row{box-shadow:inset 0 .5px 0 var(--sep)}
+.row label,.row .k{font-size:16px; color:var(--fg); flex:none}
+.row input{flex:1; min-width:0; border:0; outline:0; background:transparent; text-align:right; font-size:16px; color:var(--fg); padding:12px 0}
+.row input::placeholder{color:var(--fg3)}
+.row .v{margin-left:auto; font-size:16px; color:var(--fg2)}
+.row:has(input:focus-visible){box-shadow:inset 0 0 0 2px var(--accent); border-radius:18px}
+
+.amount-card{border-radius:22px; padding:16px 16px 16px; display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center}
+.amount-card > label{font-size:14px; font-weight:500; color:var(--fg2)}
+.amount{display:flex; align-items:baseline; justify-content:center; gap:2px; max-width:100%; color:var(--fg); transition:color .2s}
+.amount .cur{font-size:32px; font-weight:600; color:var(--fg3); letter-spacing:-.02em}
+.amount input{border:0; outline:0; background:transparent; padding:0; text-align:left; width:1ch; max-width:260px;
+  font-size:56px; font-weight:650; letter-spacing:-.035em; font-variant-numeric:tabular-nums; caret-color:var(--accent); color:inherit}
+.amount input::placeholder{color:var(--fg3)}
+.amount.err{color:var(--danger)}
+.amount-card:has(input:focus-visible){box-shadow:0 0 0 2px var(--accent)}
+.measure{position:absolute; visibility:hidden; white-space:pre; font-size:56px; font-weight:650; letter-spacing:-.035em; font-variant-numeric:tabular-nums}
+.msg{margin:0; min-height:18px; font-size:13px; color:var(--fg2)}
+.msg.err{color:var(--danger); font-weight:500}
+.pill-btn{border:0; border-radius:999px; padding:8px 14px; background:var(--accent-tint); color:var(--accent); font-size:14px; font-weight:600; transition:transform .25s var(--spring)}
+.pill-btn:active{transform:scale(.95)}
+
+.field-head{display:flex; justify-content:space-between; align-items:baseline; padding:0 4px 8px}
+.field-head span{font-size:14px; font-weight:500; color:var(--fg2)}
+.field-head .mono{font-size:13.5px; color:var(--fg); font-weight:500}
+.seg{position:relative; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); padding:3px; border-radius:14px; background:var(--fill)}
+.seg .thumb{position:absolute; top:3px; bottom:3px; left:3px; width:calc((100% - 6px)/5); border-radius:11px; background:var(--thumb);
+  box-shadow:0 3px 8px rgba(0,0,0,.12), 0 0 0 .5px rgba(0,0,0,.04); transform:translateX(calc(var(--i,0) * 100%)); transition:transform .45s var(--spring)}
+.seg button{position:relative; z-index:1; height:40px; border:0; background:transparent; font-size:14.5px; font-weight:500; color:var(--fg); border-radius:11px}
+.seg button[aria-pressed="true"]{font-weight:650}
+.tip-custom{margin-top:10px}
+
+/* ---------- Hoja inferior ---------- */
+.layer{position:absolute; inset:0; z-index:20}
+.scrim{position:absolute; inset:0; background:var(--scrim); opacity:0; transition:opacity .35s ease}
+.sheet{position:absolute; left:8px; right:8px; bottom:8px; border-radius:38px; padding:8px 18px 18px; background:var(--sheet);
+  -webkit-backdrop-filter:blur(30px) saturate(180%); backdrop-filter:blur(30px) saturate(180%); box-shadow:inset 0 .5px 0 var(--glass-edge), 0 -10px 40px rgba(0,0,0,.18);
+  transform:translateY(110%); transition:transform .5s var(--spring); display:flex; flex-direction:column; gap:14px}
+.layer.open .scrim{opacity:1}
+.layer.open .sheet{transform:none}
+.grabber{width:36px; height:5px; border-radius:3px; background:var(--sep-strong); margin:0 auto 4px}
+.sheet h2{margin:0; font-size:21px; font-weight:700; letter-spacing:-.02em; text-align:center; text-wrap:balance}
+.sheet .sub{margin:-8px 0 0; text-align:center; color:var(--fg2); font-size:14.5px}
+.opts{display:flex; flex-direction:column; border-radius:20px; background:var(--card); overflow:hidden}
+.opt{display:flex; align-items:center; gap:14px; min-height:68px; padding:10px 14px; border:0; background:transparent; text-align:left; transition:background .15s}
+.opt + .opt{box-shadow:inset 0 .5px 0 var(--sep)}
+.opt:active{background:var(--fill)}
+.opt .ic{width:40px; height:40px; flex:none; border-radius:11px; display:grid; place-items:center; color:#fff}
+.opt .ic.blue{background:linear-gradient(180deg,#3d9bff,#0066e0)}
+.opt .ic.gray{background:linear-gradient(180deg,#5a5a5f,#2c2c2e)}
+.opt .tx{display:flex; flex-direction:column; flex:1; min-width:0}
+.opt b{font-size:16px; font-weight:600}
+.opt small{font-size:13px; color:var(--fg2)}
+.opt .chev{color:var(--fg3)}
+.sheet .row{background:var(--card); border-radius:16px}
+.sheet .row input{text-align:left; font-size:20px; letter-spacing:.04em}
+
+/* ---------- Pantallas de pago ---------- */
+.center{display:flex; flex-direction:column; align-items:center; text-align:center; gap:14px}
+.qr-card{background:var(--qr-paper); border-radius:28px; padding:18px; box-shadow:0 0 0 .5px var(--sep), 0 18px 40px -16px var(--tshadow)}
+.qr-card canvas{display:block; width:203px; height:203px; transition:opacity .3s}
+.status{display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:999px; font-size:14px; font-weight:500}
+.spin{width:14px; height:14px; border-radius:50%; border:2px solid var(--sep-strong); border-top-color:var(--fg); animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.steps{list-style:none; margin:0; padding:0; width:100%; text-align:left}
+.steps li{display:flex; align-items:center; gap:12px; min-height:50px; padding:0 16px; font-size:15px}
+.steps li + li{box-shadow:inset 0 .5px 0 var(--sep)}
+.steps i{width:24px; height:24px; flex:none; border-radius:50%; display:grid; place-items:center; font-style:normal; font-size:12.5px; font-weight:700; background:var(--accent-tint); color:var(--accent)}
+.demo{width:100%; border-radius:18px; border:1.5px dashed var(--sep-strong); padding:12px; display:flex; flex-direction:column; gap:8px}
+.demo p{margin:0; font-size:12.5px; color:var(--fg2)}
+.hero-ic{width:84px; height:84px; border-radius:50%; display:grid; place-items:center; color:var(--accent)}
+.state-title{margin:0; font-size:26px; font-weight:700; letter-spacing:-.025em; text-wrap:balance}
+.state-text{margin:0; color:var(--fg2); font-size:15.5px; max-width:30ch}
+.state-text b{color:var(--fg)}
+
+.done-check{width:88px; height:88px; border-radius:50%; background:var(--ok-solid); display:grid; place-items:center; color:#fff; animation:pop .6s var(--spring) both; box-shadow:0 14px 30px -10px rgba(52,199,89,.6)}
+.done-check path{stroke-dasharray:30; stroke-dashoffset:30; animation:draw .45s .25s ease forwards}
+@keyframes pop{0%{transform:scale(.4); opacity:0} 60%{transform:scale(1.06); opacity:1} 100%{transform:scale(1)}}
+@keyframes draw{to{stroke-dashoffset:0}}
+.done-amt{margin:0; font-size:48px; font-weight:700; letter-spacing:-.04em; line-height:1}
+.receipt{width:100%}
+.receipt .t-body{gap:10px}
+
+/* ---------- Caja ---------- */
+.large-title{display:flex; flex-direction:column; gap:2px; padding:0 4px}
+.large-title h1{margin:0; font-size:32px; font-weight:700; letter-spacing:-.03em; line-height:1.1}
+.large-title p{margin:0; color:var(--fg2); font-size:14.5px}
+.tgrid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px}
+.tcard{min-height:132px; border:0; border-radius:22px; padding:14px; background:var(--card); text-align:left; display:flex; flex-direction:column; gap:4px;
+  box-shadow:0 0 0 .5px var(--glass-line), 0 6px 18px -10px var(--tshadow); transition:transform .25s var(--spring)}
+.tcard:active{transform:scale(.97)}
+.tcard .top{display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:auto}
+.tcard .top b{font-size:15.5px; font-weight:600}
+.tcard .amt{font-size:21px; font-weight:700; letter-spacing:-.03em; font-variant-numeric:tabular-nums}
+.tcard small{font-size:12.5px; color:var(--fg2)}
+.tcard .mini{height:4px; border-radius:2px; background:var(--fill); overflow:hidden; margin-top:6px}
+.tcard .mini i{display:block; height:100%; background:var(--fg); border-radius:2px}
+.tcard.free{background:transparent; box-shadow:inset 0 0 0 1.5px var(--sep-strong); box-shadow:none; outline:1.5px dashed var(--sep-strong); outline-offset:-1.5px; color:var(--fg2)}
+.tcard.free .plus{width:30px; height:30px; border-radius:50%; display:grid; place-items:center; background:var(--fill); color:var(--fg)}
+.tag{font-size:11.5px; font-weight:600; padding:3px 8px; border-radius:999px; white-space:nowrap}
+.tag.open{background:var(--accent-tint); color:var(--accent)}
+.tag.okk{background:var(--ok-tint); color:var(--ok)}
+.tag.free{background:var(--fill); color:var(--fg2)}
+.v-tip{color:var(--warn)}
+
+@media (prefers-reduced-motion: reduce){ *,*::before,*::after{animation:none !important; transition:none !important} .done-check path{stroke-dashoffset:0} }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>PayShare</h1>
+      <p>Propuesta de rediseño con lenguaje iOS: vidrio donde algo flota, papel donde está la cuenta. El teléfono funciona; pruébalo.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" id="theme" role="group" aria-label="Tema" style="grid-template-columns:repeat(3,minmax(0,1fr)); width:240px">
+        <span class="thumb" style="width:calc((100% - 6px)/3)"></span>
+        <button type="button" data-theme-opt="light" aria-pressed="true">Claro</button>
+        <button type="button" data-theme-opt="auto" aria-pressed="false" title="Sigue el modo día y noche de tu dispositivo">Auto</button>
+        <button type="button" data-theme-opt="dark" aria-pressed="false">Oscuro</button>
+      </div>
+      <div class="seg" id="mode" role="group" aria-label="Vista" style="grid-template-columns:repeat(2,minmax(0,1fr)); width:220px">
+        <span class="thumb" style="width:calc((100% - 6px)/2)"></span>
+        <button type="button" id="m-diner" data-mode="diner" aria-pressed="true">Comensal</button>
+        <button type="button" id="m-caja" data-mode="caja" aria-pressed="false">Caja</button>
+      </div>
+      <button type="button" class="round" id="reset" aria-label="Reiniciar demo" title="Reiniciar demo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="stage">
+    <div class="device">
+      <div class="screen" id="screen">
+        <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+        <div id="root"></div>
+        <div class="layer" id="layer" hidden>
+          <div class="scrim" data-close></div>
+          <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"></div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="notes">
+      <div class="try">
+        <h2>Pruébalo</h2>
+        <ol>
+          <li>Escribe tu nombre y un monto: tu parte aparece en <b>azul</b> dentro del ticket, con tu nombre.</li>
+          <li>Elige propina y toca <b>Pagar</b>, luego <b>Código QR</b>.</li>
+          <li>Toca <b>Simular pago</b>. Después cambia a <b>Caja</b>: la Mesa 4 ya muestra tu pago.</li>
+        </ol>
+      </div>
+
+      <h2>Qué cambia</h2>
+      <div class="note">
+        <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h14v18l-2.3-1.5L14.3 21 12 19.5 9.7 21l-2.4-1.5L5 21z"/><path d="M9 8h6M9 12h6"/></svg></span>
+        <div><h3>La cuenta es un ticket</h3><p>Papel con perforación y borde dentado. Los montos van en monoespaciada para que se alineen como en caja. El restante vive en el talón, con una barra que avanza con cada pago.</p></div>
+      </div>
+      <div class="note">
+        <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="4"/><path d="M3 9h18" opacity=".5"/></svg></span>
+        <div><h3>Vidrio solo en lo que flota</h3><p>Encabezado, barra de pago y hojas usan desenfoque y saturación sobre un fondo de luz suave. El contenido queda sólido para que se lea bien.</p></div>
+      </div>
+      <div class="note">
+        <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M17 7.5c0-1.9-2.2-3-5-3s-5 1.1-5 3 2.2 2.7 5 3.2 5 1.4 5 3.3-2.2 3.2-5 3.2-5-1.2-5-3"/></svg></span>
+        <div><h3>Un número grande, una acción</h3><p>El monto se escribe al centro, grande, como en una app de pagos. Un solo botón en cápsula con el total exacto.</p></div>
+      </div>
+      <div class="note">
+        <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17c3 0 4-10 7-10s3 6 5 6 2-3 6-3"/></svg></span>
+        <div><h3>Movimiento con resorte</h3><p>Selector de propina, hojas y confirmación comparten una curva tipo iOS. Con “reducir movimiento” todo queda quieto.</p></div>
+      </div>
+
+      <h2>Paleta</h2>
+      <div class="swatches" aria-label="Paleta">
+        <span class="sw"><i style="background:var(--fg)"></i>Tinta</span>
+        <span class="sw"><i style="background:var(--accent)"></i>Azul sistema</span>
+        <span class="sw"><i style="background:var(--ok-solid)"></i>Recibido</span>
+        <span class="sw"><i style="background:var(--warn)"></i>Propina</span>
+        <span class="sw"><i style="background:var(--screen)"></i>Fondo</span>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<span class="measure" id="measure" aria-hidden="true"></span>
+
+<script>
+(() => {
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = c => (c / 100).toLocaleString('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 2 });
+const clock = () => new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false });
+const today = new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }).replace('.', '');
+const RESTAURANT = 'Casa Nopal';
+const APP = 'PayShare';
+const LOGO = '<span class="logo" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M11 3.5a8.5 8.5 0 0 0 0 17z" fill="#fff"/><path d="M13.5 3.9a8.5 8.5 0 0 1 0 16.2z" fill="#fff" opacity=".6"/></svg></span>';
+
+const I = {
+  lock: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  lockSm: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  back: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
+  chev: '<svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
+  phone: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M11 18.5h2"/></svg>',
+  phoneLg: '<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M11 18.5h2"/></svg>',
+  qr: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>',
+  check: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  checkLg: '<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  share: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>',
+};
+
+/* ---------- Datos de ejemplo ---------- */
+function seed() {
+  return [
+    { id: 1, name: 'Mesa 1', bill: null },
+    { id: 2, name: 'Mesa 2', bill: { id: 9, total: 95000, payments: [
+      { name: 'Sofía', amt: 50000, tip: 5000, time: '20:41', method: 'qr' },
+      { name: 'Diego', amt: 45000, tip: 0, time: '20:44', method: 'pn' } ] } },
+    { id: 3, name: 'Mesa 3', bill: { id: 10, total: 120000, payments: [
+      { name: null, amt: 30000, tip: 4500, time: '21:05', method: 'qr' } ] } },
+    { id: 4, name: 'Mesa 4', bill: { id: 12, total: 184000, payments: [
+      { name: 'Ana', amt: 46000, tip: 4600, time: '21:12', method: 'qr' },
+      { name: 'Luis', amt: 46000, tip: 6900, time: '21:14', method: 'pn' },
+      { name: null, amt: 30000, tip: 0, time: '21:19', method: 'qr' } ] } },
+    { id: 5, name: 'Mesa 5', bill: null },
+    { id: 6, name: 'Mesa 6', bill: { id: 13, total: 64000, payments: [] } },
+  ];
+}
+const DINER_TABLE = 4;
+let tables, S;
+function initState() {
+  tables = seed();
+  S = { mode: S ? S.mode : 'diner', view: 'pay', amount: '310', tip: '10', tipCustom: '', name: '', phone: '',
+        session: null, last: null, saved: false, cview: 'grid', ctable: null, sheet: null };
+}
+const T = id => tables.find(t => t.id === id);
+const paidOf = b => b.payments.reduce((s, p) => s + p.amt, 0);
+const tipsOf = b => b.payments.reduce((s, p) => s + p.tip, 0);
+const restOf = b => Math.max(0, b.total - paidOf(b));
+
+function sanitize(v) {
+  v = v.replace(/,/g, '.').replace(/[^\d.]/g, '');
+  const i = v.indexOf('.');
+  if (i >= 0) v = v.slice(0, i + 1) + v.slice(i + 1).replace(/\./g, '').slice(0, 2);
+  if (/^0\d/.test(v)) v = v.replace(/^0+(?=\d)/, '');
+  return v.slice(0, 9);
+}
+const toCents = v => (v && v !== '.') ? Math.round(parseFloat(v) * 100) : 0;
+
+function quote() {
+  const b = T(DINER_TABLE).bill;
+  const rem = b ? restOf(b) : 0;
+  const z = { part: 0, tip: 0, sum: 0, ok: false, err: '' };
+  if (!S.amount) return z;
+  const part = toCents(S.amount);
+  if (part <= 0) return { ...z, err: 'Escribe solo el monto, por ejemplo 300.' };
+  if (part > rem) return { ...z, part, err: `El restante es ${fmt(rem)}.` };
+  const tip = S.tip === 'otra' ? toCents(S.tipCustom) : Math.round(part * Number(S.tip) / 100);
+  return { part, tip, sum: part + tip, ok: true, err: '' };
+}
+
+/* ---------- Ticket ---------- */
+function ticketHTML(table, { pending = null, staff = false } = {}) {
+  const b = table.bill;
+  const paid = paidOf(b), rem = restOf(b);
+  const pend = pending && pending.part > 0 && pending.part <= rem ? pending : null;
+  const after = pend ? rem - pend.part : rem;
+  const pct = b.total ? Math.round(paid / b.total * 100) : 0;
+  const rows = b.payments.map(p => `
+    <li class="t-row${p.fresh ? ' fresh' : ''}">
+      <span class="t-who"><b>${esc(p.name || 'Un comensal')}</b><small>${p.tip ? `+ propina ${fmt(p.tip)}` : 'sin propina'} · ${p.time}</small></span>
+      <span class="t-amt">−${fmt(p.amt)}</span>
+    </li>`).join('');
+  const you = pend ? `
+    <li class="t-row you">
+      <span class="t-who"><b>${esc(S.name.trim() || 'Tú')} · por pagar</b><small>${pend.tip ? `+ propina ${fmt(pend.tip)}` : 'sin propina'}</small></span>
+      <span class="t-amt">−${fmt(pend.part)}</span>
+    </li>` : '';
+  const label = staff ? 'Restante en efectivo' : 'Restante';
+  const big = rem === 0
+    ? `<span class="t-big ok">${I.check}Cubierta</span>`
+    : `<span class="t-big">${fmt(rem)}</span>`;
+  const bar = b.total ? `
+    <div class="t-bar" role="img" aria-label="${fmt(paid)} pagado de ${fmt(b.total)}${pend ? `; tu parte cubriría ${fmt(pend.part)} más` : ''}">
+      <span class="p" style="flex:${paid} 1 0"></span>
+      ${pend ? `<span class="y" style="flex:${pend.part} 1 0"></span>` : ''}
+      ${after > 0 ? `<span class="r" style="flex:${after} 1 0"></span>` : ''}
+    </div>` : '';
+  const cap = rem === 0 ? 'No falta nada por pagar.'
+    : pend ? `Después de tu pago quedarán <b>${fmt(after)}</b>`
+    : staff ? `${pct}% pagado por transferencia` : `${pct}% pagado`;
+  return `
+  <section class="ticket" aria-label="La cuenta">
+    <div class="t-body">
+      <div class="t-head"><span class="brand">${RESTAURANT.toUpperCase()}</span><span class="meta">${esc(table.name)} · Cuenta ${b.id} · ${today}</span></div>
+      <div class="t-rule" aria-hidden="true"></div>
+      <div class="t-line t-total"><span class="k">Total de la cuenta</span><span class="t-amt">${fmt(b.total)}</span></div>
+      <div class="t-rule" aria-hidden="true"></div>
+      <span class="t-label">${b.payments.length || pend ? 'Ya pagaron' : 'Pagos'}</span>
+      ${b.payments.length || pend ? `<ul class="t-list">${rows}${you}</ul>` : `<p class="t-empty">Aún no entra ningún pago. Aparecen aquí solos.</p>`}
+    </div>
+    <div class="t-stub">
+      <div class="t-rest">
+        <span class="l"><span class="t-label">${label}</span><small>de ${fmt(b.total)}</small></span>
+        ${big}
+      </div>
+      ${bar}
+      <p class="t-cap">${cap}</p>
+    </div>
+    <div class="t-edge" aria-hidden="true"></div>
+  </section>`;
+}
+
+/* ---------- Render ---------- */
+const root = $('#root');
+function mount(html, dir) {
+  root.innerHTML = html;
+  const app = root.firstElementChild;
+  if (dir && app) app.classList.add(dir === 'back' ? 'enter-back' : 'enter');
+}
+function render(dir) {
+  if (S.mode === 'caja') return S.cview === 'detail' ? renderDetail(dir) : renderGrid(dir);
+  const t = T(DINER_TABLE);
+  if (!t.bill) return renderNoBill(dir);
+  if (S.view === 'qr') return renderQr(dir);
+  if (S.view === 'pn') return renderPn(dir);
+  if (S.view === 'done') return renderDone(dir);
+  return renderPay(dir);
+}
+
+function navDiner() {
+  return `<header class="nav glass">${LOGO}
+    <span class="nav-title"><b>${APP}</b><small class="codi">Paga con CoDi</small></span><span class="chip">Mesa 4</span></header>`;
+}
+function navBack(title, sub, label) {
+  return `<header class="nav glass"><button type="button" class="round" id="back" aria-label="${label}">${I.back}</button>
+    <span class="nav-title"><b>${title}</b><small>${sub}</small></span></header>`;
+}
+
+function renderNoBill(dir) {
+  mount(`<div class="app">${navDiner()}<div class="scroll"><div class="center" style="margin-top:120px">
+    <span class="hero-ic glass">${I.qr}</span><h1 class="state-title">Esta mesa no tiene cuenta abierta</h1>
+    <p class="state-text">Pídela a tu mesero.</p></div></div></div>`, dir);
+}
+
+const TIPS = [['0', 'No'], ['10', '10%'], ['15', '15%'], ['20', '20%'], ['otra', 'Otra']];
+function renderPay(dir) {
+  mount(`<div class="app">
+    ${navDiner()}
+    <div class="scroll">
+      <div id="ticket"></div>
+      <section class="section">
+        <div class="field-head"><label for="f-name">Tu nombre <span class="soft">(opcional)</span></label></div>
+        <input class="field" id="f-name" type="text" autocomplete="given-name" maxlength="40" placeholder="Para que la mesa vea quién pagó" value="${esc(S.name)}">
+      </section>
+      <section class="section">
+        <div class="field-head"><label for="f-amount">¿Cuánto pagas tú?</label></div>
+        <div class="amount-card">
+          <div class="amount" id="amount-wrap"><span class="cur">$</span><input id="f-amount" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" placeholder="0" value="${esc(S.amount)}" aria-describedby="amount-msg"></div>
+          <p class="msg" id="amount-msg" aria-live="polite"></p>
+          <button type="button" class="pill-btn" id="pay-all"></button>
+        </div>
+      </section>
+      <section class="section">
+        <div class="field-head"><span id="tip-label">Propina</span><span class="mono" id="tip-amt"></span></div>
+        <div class="seg" id="tips" role="group" aria-labelledby="tip-label"><span class="thumb"></span>
+          ${TIPS.map(([id, l]) => `<button type="button" data-tip="${id}" aria-pressed="false">${l}</button>`).join('')}
+        </div>
+        <div class="group tip-custom" id="tip-custom" hidden><div class="row"><label for="f-tip">Propina</label><input id="f-tip" type="text" inputmode="decimal" placeholder="$0.00" value="${esc(S.tipCustom)}"></div></div>
+      </section>
+    </div>
+    <footer class="bar glass">
+      <button type="button" class="btn btn-primary" id="pay-btn"></button>
+      <p class="trust">${I.lockSm} Pagas desde la app de tu banco. Sin comisión.</p>
+    </footer>
+  </div>`, dir);
+
+  const amt = $('#f-amount');
+  amt.addEventListener('input', () => { const v = sanitize(amt.value); if (v !== amt.value) amt.value = v; S.amount = v; updatePay(); });
+  $('#f-name').addEventListener('input', e => { S.name = e.target.value.slice(0, 40); updatePay(); });
+  $('#pay-all').addEventListener('click', () => { S.amount = (restOf(T(DINER_TABLE).bill) / 100).toFixed(2); amt.value = S.amount; updatePay(); });
+  $$('#tips button').forEach(b => b.addEventListener('click', () => { S.tip = b.dataset.tip; updatePay(); if (S.tip === 'otra') $('#f-tip').focus({ preventScroll: true }); }));
+  $('#f-tip').addEventListener('input', e => { const v = sanitize(e.target.value); if (v !== e.target.value) e.target.value = v; S.tipCustom = v; updatePay(); });
+  $('#pay-btn').addEventListener('click', () => { if (quote().ok) openSheet('method'); });
+  updatePay();
+}
+
+function sizeAmount() {
+  const input = $('#f-amount'); if (!input) return;
+  const m = $('#measure'); m.textContent = input.value || '0';
+  input.style.width = Math.min(260, m.offsetWidth + 4) + 'px';
+}
+
+function updatePay() {
+  const q = quote(), t = T(DINER_TABLE), rem = restOf(t.bill);
+  $('#ticket').innerHTML = ticketHTML(t, { pending: q.ok ? q : null });
+  $('#amount-wrap').classList.toggle('err', !!q.err);
+  const msg = $('#amount-msg');
+  msg.className = 'msg' + (q.err ? ' err' : '');
+  msg.setAttribute('role', q.err ? 'alert' : 'status');
+  msg.textContent = q.err || (q.ok ? `Tu parte es el ${Math.round(q.part / t.bill.total * 100)}% de la cuenta` : '');
+  $('#pay-all').textContent = `Pagar todo el restante · ${fmt(rem)}`;
+  const idx = TIPS.findIndex(([id]) => id === S.tip);
+  $('#tips').style.setProperty('--i', idx);
+  $$('#tips button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tip === S.tip)));
+  $('#tip-custom').hidden = S.tip !== 'otra';
+  $('#tip-amt').textContent = q.ok && q.tip ? `+ ${fmt(q.tip)}` : '';
+  const btn = $('#pay-btn');
+  btn.disabled = !q.ok;
+  btn.innerHTML = q.ok ? `Pagar ${fmt(q.sum)} ${I.lock}` : 'Pagar';
+  sizeAmount();
+}
+
+/* ---------- QR ---------- */
+function drawQR(cv, seedNum) {
+  const n = 29, px = 7, size = n * px, dpr = window.devicePixelRatio || 1;
+  cv.width = size * dpr; cv.height = size * dpr;
+  const g = cv.getContext('2d'); g.scale(dpr, dpr);
+  const css = getComputedStyle(document.documentElement);
+  const paper = css.getPropertyValue('--qr-paper').trim() || '#fff', ink = css.getPropertyValue('--qr-ink').trim() || '#111';
+  g.fillStyle = paper; g.fillRect(0, 0, size, size);
+  let s = seedNum;
+  const rnd = () => (s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  const finder = (x, y) => (x < 8 && y < 8) || (x > n - 9 && y < 8) || (x < 8 && y > n - 9);
+  const rr = (x, y, w, h, r) => { g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, r) : g.rect(x, y, w, h); g.fill(); };
+  g.fillStyle = ink;
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (!finder(x, y) && rnd() < .47) rr(x * px + .4, y * px + .4, px - .8, px - .8, 1.6);
+  [[0, 0], [n - 7, 0], [0, n - 7]].forEach(([fx, fy]) => {
+    g.fillStyle = ink; rr(fx * px, fy * px, 7 * px, 7 * px, 12);
+    g.fillStyle = paper; rr(fx * px + px, fy * px + px, 5 * px, 5 * px, 8);
+    g.fillStyle = ink; rr(fx * px + 2 * px, fy * px + 2 * px, 3 * px, 3 * px, 5);
+  });
+}
+function countdown() {
+  if (!S.session) return '15:00';
+  const sec = Math.ceil(Math.max(0, S.session.expires - Date.now()) / 1000);
+  return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+}
+function demoBox() {
+  return `<div class="demo"><p>Solo para demostración. Aquí la persona paga en su banco.</p>
+    <button type="button" class="btn btn-tinted btn-sm" id="simulate">Simular pago</button></div>`;
+}
+function bindSim() {
+  const b = $('#simulate'); if (!b) return;
+  b.addEventListener('click', () => {
+    b.disabled = true; b.innerHTML = '<span class="spin" aria-hidden="true"></span> Confirmando…';
+    setTimeout(confirmPayment, 900);
+  });
+}
+function renderQr(dir) {
+  const total = fmt(S.session.part + S.session.tip);
+  mount(`<div class="app">
+    ${navBack(`Pagar ${total}`, 'Mesa 4 · cuenta 12', 'Cambiar monto')}
+    <div class="scroll"><div class="center">
+      <div class="qr-card"><canvas id="qr" width="203" height="203" role="img" aria-label="Código QR de CoDi por ${total}"></canvas></div>
+      <span class="status glass" role="status"><span class="spin" aria-hidden="true"></span>Esperando tu pago · vence en <span class="mono" id="cd">${countdown()}</span></span>
+      <ol class="steps group">
+        <li><i>1</i>Guarda el código en tus fotos</li>
+        <li><i>2</i>Abre la app de tu banco y entra a CoDi</li>
+        <li><i>3</i>Elige leer el código desde una imagen</li>
+      </ol>
+      ${demoBox()}
+    </div></div>
+    <footer class="bar glass">
+      <button type="button" class="btn btn-primary" id="save">${S.saved ? `${I.check} Guardado en tus fotos` : 'Guardar código'}</button>
+      <button type="button" class="btn btn-quiet" id="share">${I.share} Compartir</button>
+    </footer>
+  </div>`, dir);
+  drawQR($('#qr'), S.session.part + 7);
+  $('#back').addEventListener('click', () => { S.view = 'pay'; S.session = null; render('back'); });
+  $('#save').addEventListener('click', e => { S.saved = true; e.currentTarget.innerHTML = `${I.check} Guardado en tus fotos`; });
+  $('#share').addEventListener('click', e => { e.currentTarget.textContent = 'Compartir no está disponible en la demo'; });
+  bindSim();
+}
+function renderPn(dir) {
+  const total = fmt(S.session.part + S.session.tip);
+  mount(`<div class="app">
+    ${navBack(`Pagar ${total}`, 'Mesa 4 · cuenta 12', 'Cambiar monto')}
+    <div class="scroll"><div class="center" style="margin-top:56px">
+      <span class="hero-ic glass">${I.phoneLg}</span>
+      <h1 class="state-title">Revisa la app de tu banco</h1>
+      <p class="state-text">Te enviamos un cobro por <b class="num">${total}</b> al celular terminado en ${esc(S.session.phone.slice(-4))}.</p>
+      <span class="status glass" role="status"><span class="spin" aria-hidden="true"></span>Esperando tu pago</span>
+      ${demoBox()}
+    </div></div>
+    <footer class="bar glass"><button type="button" class="btn btn-tinted" id="to-qr">Mejor usar código QR</button></footer>
+  </div>`, dir);
+  $('#back').addEventListener('click', () => { S.view = 'pay'; S.session = null; render('back'); });
+  $('#to-qr').addEventListener('click', () => { S.session.method = 'qr'; S.view = 'qr'; render('fwd'); });
+  bindSim();
+}
+
+function confirmPayment() {
+  const s = S.session; if (!s) return;
+  const b = T(DINER_TABLE).bill;
+  const pay = { name: S.name.trim() || null, amt: s.part, tip: s.tip, time: clock(), method: s.method, fresh: true };
+  b.payments.push(pay);
+  S.last = { ...pay, rest: restOf(b) };
+  S.session = null; S.view = 'done';
+  render('fwd');
+}
+function renderDone(dir) {
+  const L = S.last;
+  mount(`<div class="app">
+    ${navDiner()}
+    <div class="scroll"><div class="center" style="margin-top:18px">
+      <span class="done-check">${I.checkLg}</span>
+      <h1 class="state-title" role="status">Pago recibido</h1>
+      <p class="done-amt num">${fmt(L.amt + L.tip)}</p>
+      <section class="ticket receipt" aria-label="Comprobante">
+        <div class="t-body">
+          <div class="t-head"><span class="brand">COMPROBANTE</span><span class="meta">${RESTAURANT} · Mesa 4 · ${L.time}</span></div>
+          <div class="t-rule" aria-hidden="true"></div>
+          <div class="t-line"><span class="k">Tu parte</span><span class="t-amt">${fmt(L.amt)}</span></div>
+          <div class="t-line"><span class="k">Propina</span><span class="t-amt v-tip">${fmt(L.tip)}</span></div>
+          <div class="t-line"><span class="k">Método</span><span class="t-amt">${L.method === 'qr' ? 'CoDi · QR' : 'CoDi · celular'}</span></div>
+        </div>
+        <div class="t-stub"><div class="t-line t-total"><span class="k">Restante de la mesa</span><span class="t-amt">${L.rest === 0 ? 'Cubierta' : fmt(L.rest)}</span></div></div>
+        <div class="t-edge" aria-hidden="true"></div>
+      </section>
+    </div></div>
+    <footer class="bar glass"><button type="button" class="btn btn-primary" id="ok">Listo</button></footer>
+  </div>`, dir);
+  $('#ok').addEventListener('click', () => {
+    Object.assign(S, { view: 'pay', amount: '', tip: '0', tipCustom: '', name: '', saved: false });
+    render('back');
+  });
+}
+
+/* ---------- Caja ---------- */
+function renderGrid(dir) {
+  const open = tables.filter(t => t.bill);
+  const cash = open.reduce((s, t) => s + restOf(t.bill), 0);
+  const cards = tables.map(t => {
+    if (!t.bill) return `<button type="button" class="tcard free" data-t="${t.id}">
+      <span class="top"><b>${t.name}</b><span class="tag free">Libre</span></span>
+      <span class="plus" aria-hidden="true">${I.plus}</span><small>Abrir cuenta</small></button>`;
+    const rem = restOf(t.bill), pct = t.bill.total ? paidOf(t.bill) / t.bill.total * 100 : 0;
+    const fresh = t.bill.payments.some(p => p.fresh);
+    return `<button type="button" class="tcard" data-t="${t.id}">
+      <span class="top"><b>${t.name}</b>${rem === 0 ? '<span class="tag okk">Cubierta</span>' : `<span class="tag open">${fresh ? 'Pago nuevo' : 'Abierta'}</span>`}</span>
+      <span class="amt">${rem === 0 ? 'Lista' : fmt(rem)}</span>
+      <small>${rem === 0 ? 'para cerrar' : `restante de ${fmt(t.bill.total)}`}</small>
+      <span class="mini" aria-hidden="true"><i style="width:${pct}%"></i></span></button>`;
+  }).join('');
+  mount(`<div class="app">
+    <header class="nav glass">${LOGO}<span class="nav-title"><b>${APP}</b><small class="codi">Caja · ${RESTAURANT}</small></span><span class="chip">${open.length} abiertas</span></header>
+    <div class="scroll">
+      <div class="large-title"><h1>Mesas</h1><p>Restante en efectivo: <b class="num" style="color:var(--fg)">${fmt(cash)}</b></p></div>
+      <div class="tgrid">${cards}</div>
+    </div>
+  </div>`, dir);
+  $$('.tcard').forEach(c => c.addEventListener('click', () => {
+    const t = T(Number(c.dataset.t));
+    if (!t.bill) return openSheet('open', t);
+    S.ctable = t.id; S.cview = 'detail'; render('fwd');
+  }));
+}
+function renderDetail(dir) {
+  const t = T(S.ctable);
+  if (!t || !t.bill) { S.cview = 'grid'; return renderGrid('back'); }
+  const b = t.bill;
+  mount(`<div class="app">
+    ${navBack(t.name, `Cuenta ${b.id}`, 'Volver a mesas')}
+    <div class="scroll">
+      ${ticketHTML(t, { staff: true })}
+      <div class="group">
+        <div class="row"><span class="k">Pagado por transferencia</span><span class="v num">${fmt(paidOf(b))}</span></div>
+        <div class="row"><span class="k">Propinas, aparte</span><span class="v num v-tip">${fmt(tipsOf(b))}</span></div>
+      </div>
+    </div>
+    <footer class="bar glass"><button type="button" class="btn btn-primary" id="close-t">Cerrar mesa</button></footer>
+  </div>`, dir);
+  b.payments.forEach(p => { p.fresh = false; });
+  $('#back').addEventListener('click', () => { S.cview = 'grid'; render('back'); });
+  $('#close-t').addEventListener('click', () => openSheet('close', t));
+}
+
+/* ---------- Hojas ---------- */
+const layer = $('#layer'), sheet = $('#sheet');
+let lastFocus = null, sheetTimer = 0;
+const SHEETS = {
+  method: () => {
+    const q = quote();
+    return `<div class="grabber" aria-hidden="true"></div>
+      <h2 id="sheet-title">¿Cómo quieres pagar?</h2><p class="sub">Total <span class="num">${fmt(q.sum)}</span></p>
+      <div class="opts">
+        <button type="button" class="opt" data-go="pn"><span class="ic blue">${I.phone}</span><span class="tx"><b>Cobro a mi celular</b><small>Te llega a la app de tu banco</small></span>${I.chev}</button>
+        <button type="button" class="opt" data-go="qr"><span class="ic gray">${I.qr}</span><span class="tx"><b>Código QR</b><small>Para guardarlo o escanearlo</small></span>${I.chev}</button>
+      </div>
+      <button type="button" class="btn btn-quiet" data-close>Cancelar</button>`;
+  },
+  phone: () => `<div class="grabber" aria-hidden="true"></div>
+      <h2 id="sheet-title">¿A qué celular enviamos el cobro?</h2>
+      <p class="sub">El que tienes registrado en tu banco. Solo lo usamos para este cobro y no lo guardamos.</p>
+      <div class="row"><input id="f-phone" type="text" inputmode="numeric" autocomplete="tel-national" placeholder="10 dígitos" aria-label="Celular a 10 dígitos" value="${esc(S.phone)}" autofocus></div>
+      <button type="button" class="btn btn-primary" id="send-pn">Enviar cobro de ${fmt(quote().sum)}</button>
+      <button type="button" class="btn btn-quiet" data-close>Cancelar</button>`,
+  open: t => `<div class="grabber" aria-hidden="true"></div>
+      <h2 id="sheet-title">Abrir cuenta · ${t.name}</h2>
+      <section class="amount-card"><label for="f-total">Total de la cuenta</label>
+        <div class="amount"><span class="cur">$</span><input id="f-total" type="text" inputmode="decimal" placeholder="0" style="width:4.2ch" autofocus></div></section>
+      <button type="button" class="btn btn-primary" id="do-open" disabled>Abrir cuenta</button>
+      <button type="button" class="btn btn-quiet" data-close>Cancelar</button>`,
+  close: t => `<div class="grabber" aria-hidden="true"></div>
+      <h2 id="sheet-title">¿Cerrar la ${t.name}?</h2>
+      <p class="sub">Confirma que ya cobraste <b class="num" style="color:var(--fg)">${fmt(restOf(t.bill))}</b> en efectivo. La mesa quedará libre.</p>
+      <button type="button" class="btn btn-primary" id="do-close">Sí, cerrar mesa</button>
+      <button type="button" class="btn btn-quiet" data-close>Cancelar</button>`,
+};
+function startSession(method, phone) {
+  const q = quote();
+  S.session = { method, part: q.part, tip: q.tip, phone: phone || '', expires: Date.now() + 15 * 60e3 };
+  S.saved = false; S.view = method;
+  closeSheet(true); render('fwd');
+}
+function openSheet(kind, data) {
+  clearTimeout(sheetTimer);
+  lastFocus = document.activeElement;
+  S.sheet = kind;
+  sheet.innerHTML = SHEETS[kind](data);
+  layer.hidden = false;
+  requestAnimationFrame(() => requestAnimationFrame(() => layer.classList.add('open')));
+  $$('[data-close]', sheet).forEach(b => b.addEventListener('click', () => closeSheet()));
+  if (kind === 'method') $$('[data-go]', sheet).forEach(b => b.addEventListener('click', () => b.dataset.go === 'qr' ? startSession('qr') : openSheet('phone')));
+  if (kind === 'phone') {
+    const inp = $('#f-phone'), send = $('#send-pn');
+    const sync = () => { inp.value = inp.value.replace(/\D/g, '').slice(0, 10); S.phone = inp.value; send.disabled = inp.value.length !== 10; };
+    inp.addEventListener('input', sync); sync();
+    send.addEventListener('click', () => startSession('pn', S.phone));
+  }
+  if (kind === 'open') {
+    const inp = $('#f-total'), go = $('#do-open'), m = $('#measure');
+    inp.addEventListener('input', () => { inp.value = sanitize(inp.value); m.textContent = inp.value || '0'; inp.style.width = Math.min(240, m.offsetWidth + 4) + 'px'; go.disabled = toCents(inp.value) <= 0; });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !go.disabled) go.click(); });
+    go.addEventListener('click', () => { data.bill = { id: 20 + data.id, total: toCents(inp.value), payments: [] }; closeSheet(true); S.ctable = data.id; S.cview = 'detail'; render('fwd'); });
+  }
+  if (kind === 'close') $('#do-close').addEventListener('click', () => { data.bill = null; closeSheet(true); S.cview = 'grid'; render('back'); });
+  setTimeout(() => { const f = sheet.querySelector('[autofocus]') || sheet.querySelector('button:not([disabled]),input'); f && f.focus({ preventScroll: true }); }, 80);
+}
+function closeSheet(silent) {
+  layer.classList.remove('open'); S.sheet = null;
+  sheetTimer = setTimeout(() => { if (!S.sheet) layer.hidden = true; }, 420);
+  if (!silent && lastFocus && document.contains(lastFocus)) lastFocus.focus({ preventScroll: true });
+}
+$('.scrim', layer).addEventListener('click', () => closeSheet());
+layer.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { e.preventDefault(); closeSheet(); return; }
+  if (e.key !== 'Tab') return;
+  const f = $$('button:not([disabled]),input', sheet); if (!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
+
+/* ---------- Controles de la página ---------- */
+function setMode(mode) {
+  if (S.mode === mode) return;
+  S.mode = mode;
+  if (S.sheet) closeSheet(true);
+  const seg = $('#mode');
+  seg.style.setProperty('--i', mode === 'caja' ? 1 : 0);
+  $$('button', seg).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+  render(mode === 'caja' ? 'fwd' : 'back');
+}
+$$('#mode button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+$('#reset').addEventListener('click', () => { if (S.sheet) closeSheet(true); initState(); render('back'); });
+
+const THEMES = ['light', 'auto', 'dark'];
+function applyTheme(t) {
+  if (!THEMES.includes(t)) t = 'light';
+  const r = document.documentElement;
+  THEMES.forEach(x => r.classList.remove('t-' + x));
+  r.classList.add('t-' + t);
+  const seg = $('#theme');
+  seg.style.setProperty('--i', THEMES.indexOf(t));
+  $$('button', seg).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.themeOpt === t)));
+  try { localStorage.setItem('ps-theme', t); } catch (e) {}
+}
+let savedTheme = 'light';
+try { savedTheme = localStorage.getItem('ps-theme') || 'light'; } catch (e) {}
+applyTheme(savedTheme);
+$$('#theme button').forEach(b => b.addEventListener('click', () => applyTheme(b.dataset.themeOpt)));
+
+setInterval(() => { const el = $('#cd'); if (el) el.textContent = countdown(); }, 1000);
+
+initState();
+render();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(sizeAmount);
+})();
+</script>
