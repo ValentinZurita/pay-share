@@ -46,10 +46,10 @@ flowchart LR
 ## Pruébalo
 
 1. Entra a la [caja](https://pay-share-one.vercel.app/caja) con el PIN `977564`. En la **Mesa 4** toca **Abrir cuenta** y escribe un total, por ejemplo `500`.
-2. Abre la [Mesa 4](https://pay-share-one.vercel.app/mesa/4) en tu celular. Escribe cuánto pagas, elige la propina, toca **Pagar** y luego **Código QR**. Confirma el pago con el botón que aparece debajo de los pasos.
+2. Abre la [Mesa 4](https://pay-share-one.vercel.app/mesa/4) en tu celular. Escribe cuánto pagas, elige la propina, toca **Pagar** y luego **Código QR**. Paga el QR desde tu app de banco con CoDi.
 3. Vuelve a la caja: verás lo pagado por transferencia, la propina aparte y el restante en efectivo. Toca **Cerrar mesa** para dejarla libre.
 
-<sub>La versión publicada corre en modo de prueba mientras pey activa la cuenta CLABE; la integración real ya está en el código (`PEY_MODE=live`).</sub>
+<sub>💸 La versión publicada usa la API de pey en producción (`PEY_MODE=live`). Para el demo, `DEMO_MODE` cobra solo **$0.01 MXN** por pago, a una cuenta de pruebas de pey (no se devuelve).</sub>
 
 **Stack:** Next.js · React · TypeScript · Tailwind CSS · Supabase · Vercel · API de pey
 
