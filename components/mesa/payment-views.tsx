@@ -153,7 +153,7 @@ export function ActivePaymentView({
         </ScrollBody>
       )}
 
-      <FooterBar>
+      <FooterBar tone="integrated">
         {connectionError ? (
           <Banner>No pudimos conectar. Revisa tu internet e inténtalo de nuevo.</Banner>
         ) : null}
@@ -231,7 +231,7 @@ export function PaymentDoneView({
           />
         </EmptyState>
       </ScrollBody>
-      <FooterBar>
+      <FooterBar tone="integrated">
         <Button variant="primary" onClick={onDone}>
           Listo
         </Button>

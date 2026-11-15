@@ -2,6 +2,7 @@
 
 import { TipSelector, type TipMode } from "@/components/mesa/tip-selector";
 import { CurrencyInput, Field, TextInput } from "@/components/ui/input";
+import { sanitizePesosInput } from "@/lib/money";
 
 /**
  * Diner payment form: optional payer name, part amount, and tip selector.
@@ -51,12 +52,12 @@ export function PaymentForm({
           enterKeyHint="done"
           invalid={Boolean(error)}
           value={amount}
-          onChange={(event) => onAmountChange(event.target.value)}
+          onChange={(event) => onAmountChange(sanitizePesosInput(event.target.value))}
         />
         <button
           type="button"
           onClick={onPayRemaining}
-          className="self-start rounded px-0 py-1 text-[13.5px] font-medium text-primary transition-colors hover:text-primary-press"
+          className="self-start rounded px-0 py-1 text-[13.5px] font-medium text-primary transition-colors hover:text-primary-press active:opacity-80"
         >
           Pagar todo el restante
         </button>

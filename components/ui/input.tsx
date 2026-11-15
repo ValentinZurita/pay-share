@@ -76,8 +76,8 @@ export function TextInput({
   return (
     <div
       className={cn(
-        "flex h-[50px] items-center gap-2 rounded-lg bg-surface px-3.5 shadow-card transition-shadow focus-within:shadow-focus",
-        invalid && "shadow-focus-danger focus-within:shadow-focus-danger",
+        "flex h-[50px] items-center gap-2 rounded-lg bg-surface px-3.5 shadow-card transition-shadow duration-150 ease-(--ease) hover:shadow-card-hover focus-within:shadow-focus",
+        invalid && "shadow-focus-danger hover:shadow-focus-danger focus-within:shadow-focus-danger",
         className,
       )}
     >
@@ -99,5 +99,18 @@ export function TextInput({
  * Specialized MXN currency input with `$` prefix and `MXN` suffix.
  */
 export function CurrencyInput(props: Omit<TextInputProps, "prefix" | "suffix">) {
-  return <TextInput prefix="$" suffix="MXN" inputMode="decimal" autoComplete="off" placeholder="0.00" {...props} />;
+  return (
+    <TextInput
+      type="text"
+      prefix="$"
+      suffix="MXN"
+      inputMode="decimal"
+      autoComplete="off"
+      autoCorrect="off"
+      autoCapitalize="off"
+      spellCheck={false}
+      placeholder="0.00"
+      {...props}
+    />
+  );
 }

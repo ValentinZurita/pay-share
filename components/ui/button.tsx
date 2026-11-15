@@ -13,13 +13,13 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
-    "bg-primary text-on-primary shadow-btn hover:bg-primary-press disabled:bg-primary-mid disabled:shadow-none disabled:cursor-default disabled:active:scale-100",
+    "bg-primary text-on-primary shadow-btn hover:-translate-y-[0.5px] hover:bg-primary-press disabled:bg-primary-mid disabled:shadow-none disabled:cursor-default disabled:hover:translate-y-0 disabled:active:scale-100",
   secondary:
-    "bg-surface text-ink shadow-card hover:shadow-card-hover disabled:opacity-60 disabled:cursor-default disabled:active:scale-100",
+    "bg-surface text-ink shadow-card hover:-translate-y-[0.5px] hover:shadow-card-hover disabled:opacity-60 disabled:cursor-default disabled:hover:translate-y-0 disabled:active:scale-100",
   quiet:
-    "bg-transparent text-muted font-medium shadow-none hover:text-ink disabled:opacity-50 disabled:cursor-default",
+    "bg-transparent text-muted font-medium shadow-none hover:bg-bg/70 hover:text-ink disabled:opacity-50 disabled:cursor-default",
   surface:
-    "bg-surface text-ink shadow-card hover:shadow-card-hover",
+    "bg-surface text-ink shadow-card hover:-translate-y-[0.5px] hover:shadow-card-hover",
   ghost:
     "bg-transparent text-muted hover:bg-bg hover:text-ink",
 };
@@ -48,7 +48,7 @@ export function Button({
     <button
       type={type}
       className={cn(
-        "relative inline-flex items-center justify-center gap-2 transition-[background,box-shadow,transform] duration-150 ease-(--ease) active:scale-[0.99] select-none",
+        "relative inline-flex items-center justify-center gap-2 transition-[background,box-shadow,transform,color] duration-150 ease-(--ease) active:scale-[0.985] select-none",
         VARIANT_CLASSES[variant],
         SIZE_CLASSES[size],
         fullWidth && "w-full",

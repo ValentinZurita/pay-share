@@ -309,7 +309,7 @@ export function MesaApp({
       </ScrollBody>
 
       {bill.remainingCents > 0 ? (
-        <FooterBar>
+        <FooterBar tone="integrated">
           {connectionError ? (
             <Banner>No pudimos conectar. Revisa tu internet e inténtalo de nuevo.</Banner>
           ) : null}

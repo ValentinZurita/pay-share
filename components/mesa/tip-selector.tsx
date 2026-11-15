@@ -2,7 +2,7 @@
 
 import { CurrencyInput, Field } from "@/components/ui/input";
 import { cn } from "@/lib/cn";
-import { formatMXN } from "@/lib/money";
+import { formatMXN, sanitizePesosInput } from "@/lib/money";
 
 export type TipMode = "0" | "10" | "15" | "20" | "otra";
 
@@ -49,10 +49,10 @@ export function TipSelector({
               aria-pressed={active}
               onClick={() => onModeChange(tip.id)}
               className={cn(
-                "min-h-11 rounded-lg bg-surface text-[14px] shadow-card transition-shadow",
+                "min-h-11 rounded-lg bg-surface text-[14px] shadow-card transition-[background,box-shadow,color,transform] duration-150 ease-(--ease) active:scale-[0.97]",
                 active
                   ? "font-semibold text-primary shadow-[0_0_0_1.5px_var(--primary),0_2px_5px_rgba(99,91,255,0.18)]"
-                  : "font-medium text-text",
+                  : "font-medium text-text hover:bg-bg hover:text-ink hover:shadow-card-hover",
               )}
             >
               {tip.label}
@@ -61,11 +61,13 @@ export function TipSelector({
         })}
       </div>
       {tipMode === "otra" ? (
-        <CurrencyInput
-          aria-label="Propina en pesos"
-          value={tipCustom}
-          onChange={(event) => onCustomChange(event.target.value)}
-        />
+        <div className="animate-[fade_0.18s_ease-out]">
+          <CurrencyInput
+            aria-label="Propina en pesos"
+            value={tipCustom}
+            onChange={(event) => onCustomChange(sanitizePesosInput(event.target.value))}
+          />
+        </div>
       ) : null}
     </Field>
   );

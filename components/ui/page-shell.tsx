@@ -12,7 +12,7 @@ export function DinerShell({
   return (
     <div
       className={cn(
-        "mx-auto flex h-(--app-height,100dvh) w-full max-w-[440px] flex-col overflow-hidden bg-bg min-[480px]:my-6 min-[480px]:h-[min(calc(var(--app-height,100dvh)-3rem),820px)] min-[480px]:rounded-2xl min-[480px]:border min-[480px]:border-line min-[480px]:shadow-card",
+        "mx-auto flex h-(--app-height,100dvh) w-full max-w-[440px] flex-col overflow-hidden bg-bg",
         className,
       )}
       {...props}
@@ -49,14 +49,18 @@ export function ScrollBody({
  * Sticky bottom action bar with safe-area bottom inset.
  */
 export function FooterBar({
+  tone = "surface",
   className,
   children,
   ...props
-}: HTMLAttributes<HTMLDivElement>) {
+}: HTMLAttributes<HTMLDivElement> & { tone?: "surface" | "integrated" }) {
   return (
     <div
       className={cn(
-        "flex flex-none flex-col gap-2.5 bg-surface px-5 pt-3.5 pb-[calc(16px+env(safe-area-inset-bottom))] shadow-[0_-1px_0_var(--line)] max-[380px]:px-4",
+        "flex flex-none flex-col gap-2.5 px-5 pt-3.5 pb-[calc(16px+env(safe-area-inset-bottom))] max-[380px]:px-4",
+        tone === "integrated"
+          ? "bg-surface shadow-[0_-1px_0_var(--line)] min-[480px]:border-t min-[480px]:border-line/80 min-[480px]:bg-bg/90 min-[480px]:shadow-none min-[480px]:backdrop-blur-md"
+          : "bg-surface shadow-[0_-1px_0_var(--line)]",
         className,
       )}
       {...props}
