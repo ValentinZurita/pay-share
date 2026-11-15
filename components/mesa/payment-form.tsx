@@ -1,11 +1,11 @@
 "use client";
 
 import { TipSelector, type TipMode } from "@/components/mesa/tip-selector";
-import { CurrencyInput, Field, TextInput } from "@/components/ui/input";
+import { TextInput } from "@/components/ui/input";
 import { sanitizePesosInput } from "@/lib/money";
 
 /**
- * Diner payment form: optional payer name, part amount, and tip selector.
+ * Formulario del comensal: nombre, monto grande y propina.
  */
 export function PaymentForm({
   amount,
@@ -14,6 +14,8 @@ export function PaymentForm({
   tipCents,
   name,
   error,
+  remainingLabel,
+  shareLabel,
   onAmountChange,
   onPayRemaining,
   onTipModeChange,
@@ -26,42 +28,72 @@ export function PaymentForm({
   tipCents: number;
   name: string;
   error: string;
+  remainingLabel: string;
+  shareLabel: string;
   onAmountChange: (value: string) => void;
   onPayRemaining: () => void;
   onTipModeChange: (mode: TipMode) => void;
   onTipCustomChange: (value: string) => void;
   onNameChange: (value: string) => void;
 }) {
+  const width = `${Math.max(1, (amount || "0").length)}ch`;
+
   return (
     <>
-      <Field label="Tu nombre" htmlFor="payer-name" hint="(opcional)">
+      <section className="ps-pay-section">
+        <div className="ps-pay-head">
+          <label htmlFor="payer-name" className="text-[14px] font-medium text-fg2">
+            Tu nombre <span className="font-normal text-fg3">(opcional)</span>
+          </label>
+        </div>
         <TextInput
           id="payer-name"
-          maxLength={20}
+          maxLength={40}
           autoComplete="given-name"
           placeholder="Para que la mesa vea quién pagó"
           value={name}
-          onChange={(event) => onNameChange(event.target.value)}
+          onChange={(event) => onNameChange(event.target.value.slice(0, 40))}
           textSize="md"
         />
-      </Field>
+      </section>
 
-      <Field label="¿Cuánto pagas tú?" htmlFor="amount" error={error || undefined}>
-        <CurrencyInput
-          id="amount"
-          enterKeyHint="done"
-          invalid={Boolean(error)}
-          value={amount}
-          onChange={(event) => onAmountChange(sanitizePesosInput(event.target.value))}
-        />
-        <button
-          type="button"
-          onClick={onPayRemaining}
-          className="self-start rounded px-0 py-1 text-[13.5px] font-medium text-primary transition-colors hover:text-primary-press active:opacity-80"
-        >
-          Pagar todo el restante
-        </button>
-      </Field>
+      <section className="ps-pay-section" aria-label="Monto">
+        <div className="ps-pay-head">
+          <label htmlFor="amount" className="text-[14px] font-medium text-fg2">
+            ¿Cuánto pagas tú?
+          </label>
+        </div>
+        <div className="ps-amount-card">
+          <label className={error ? "ps-amount is-error" : "ps-amount"}>
+            <span className="ps-amount-cur" aria-hidden="true">
+              $
+            </span>
+            <input
+              id="amount"
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              enterKeyHint="done"
+              placeholder="0"
+              aria-describedby="amount-msg"
+              aria-invalid={error ? true : undefined}
+              value={amount}
+              onChange={(event) => onAmountChange(sanitizePesosInput(event.target.value))}
+              className="ps-amount-input"
+              style={{ width }}
+            />
+          </label>
+          <p id="amount-msg" className={error ? "ps-amount-msg is-error" : "ps-amount-msg"} role={error ? "alert" : "status"}>
+            {error || shareLabel}
+          </p>
+          <button type="button" className="ps-pill" onClick={onPayRemaining}>
+            Pagar todo el restante · {remainingLabel}
+          </button>
+        </div>
+      </section>
 
       <TipSelector
         tipMode={tipMode}

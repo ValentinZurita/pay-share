@@ -20,7 +20,7 @@ import { useLiveSnapshot } from "@/lib/use-live-snapshot";
 type View = "pay" | "qr" | "pn" | "done";
 type Sheet = null | "method" | "phone";
 
-function assess(amount: string, remaining: number, tipMode: TipMode, tipCustom: string) {
+export function assess(amount: string, remaining: number, tipMode: TipMode, tipCustom: string) {
   if (!amount.trim()) return { part: 0, tip: 0, error: "", ok: false, sum: 0 };
   let part = 0;
   try {
@@ -49,9 +49,11 @@ function assess(amount: string, remaining: number, tipMode: TipMode, tipCustom: 
 }
 
 function useNow() {
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(0);
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    const tick = () => setNow(Date.now());
+    tick();
+    const timer = window.setInterval(tick, 1000);
     return () => window.clearInterval(timer);
   }, []);
   return now;
@@ -83,6 +85,7 @@ export function MesaApp({
   const [sending, setSending] = useState(false);
   const [formError, setFormError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [paidAt, setPaidAt] = useState<string | null>(null);
   const [canShare, setCanShare] = useState(false);
   const [offline, setOffline] = useState(false);
   const now = useNow();
@@ -113,6 +116,7 @@ export function MesaApp({
         if (!response.ok) return;
         const body = (await response.json()) as { status: string };
         if (!stop && body.status === "paid") {
+          setPaidAt(new Date().toISOString());
           setView("done");
           void reload();
         }
@@ -236,11 +240,14 @@ export function MesaApp({
     return (
       <PaymentDoneView
         tableName={snapshot.table.name}
+        restaurant={restaurant}
         session={session}
         remainingCents={bill.remainingCents}
+        paidAt={paidAt}
         onDone={() => {
           setView("pay");
           setSession(null);
+          setPaidAt(null);
           setAmount("");
           setTipMode("0");
           setTipCustom("");
@@ -301,6 +308,12 @@ export function MesaApp({
             tipCents={quote.tip}
             name={name}
             error={showError}
+            remainingLabel={formatMXN(bill.remainingCents)}
+            shareLabel={
+              !showError && quote.ok && bill.totalCents > 0
+                ? `Tu parte es el ${Math.round((quote.part / bill.totalCents) * 100)}% de la cuenta`
+                : ""
+            }
             onAmountChange={(value) => {
               setAmount(value);
               setFormError("");
@@ -308,7 +321,7 @@ export function MesaApp({
             onPayRemaining={() => setAmount((bill.remainingCents / 100).toFixed(2))}
             onTipModeChange={setTipMode}
             onTipCustomChange={setTipCustom}
-            onNameChange={setName}
+            onNameChange={(value) => setName(value.slice(0, 40))}
           />
         )}
       </ScrollBody>
@@ -346,6 +359,7 @@ export function MesaApp({
 
       {sheet === "method" ? (
         <PaymentMethodSheet
+          totalCents={quote.sum}
           sending={sending}
           onClose={() => setSheet(null)}
           onSelectPhone={() => setSheet("phone")}

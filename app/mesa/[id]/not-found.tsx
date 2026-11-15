@@ -1,9 +1,11 @@
+import { BrandBar } from "@/components/ui/brand-bar";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DinerShell, ScrollBody } from "@/components/ui/page-shell";
 
 export default function NotFound() {
   return (
     <DinerShell>
+      <BrandBar subtitle="Paga con CoDi" />
       <ScrollBody>
         <EmptyState
           title="No encontramos esa mesa"

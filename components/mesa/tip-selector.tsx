@@ -1,7 +1,6 @@
 "use client";
 
-import { CurrencyInput, Field } from "@/components/ui/input";
-import { cn } from "@/lib/cn";
+import type { CSSProperties } from "react";
 import { formatMXN, sanitizePesosInput } from "@/lib/money";
 
 export type TipMode = "0" | "10" | "15" | "20" | "otra";
@@ -15,7 +14,7 @@ const TIP_OPTIONS: { id: TipMode; label: string }[] = [
 ];
 
 /**
- * Tip percentage selector with an optional custom MXN amount input.
+ * Propina como control segmentado: la pastilla se desliza hasta la opción elegida.
  */
 export function TipSelector({
   tipMode,
@@ -30,45 +29,52 @@ export function TipSelector({
   onModeChange: (mode: TipMode) => void;
   onCustomChange: (value: string) => void;
 }) {
+  const index = Math.max(0, TIP_OPTIONS.findIndex((tip) => tip.id === tipMode));
+
   return (
-    <Field
-      label="Propina"
-      headerEnd={
-        <span className="text-[13.5px] font-medium text-warn num">
+    <section className="ps-pay-section">
+      <div className="ps-pay-head">
+        <span id="tip-label" className="text-[14px] font-medium text-fg2">
+          Propina
+        </span>
+        <span className="mono text-[13.5px] font-medium text-fg">
           {tipCents > 0 ? `+ ${formatMXN(tipCents)}` : ""}
         </span>
-      }
-    >
-      <div className="grid grid-cols-5 gap-1.5 max-[380px]:gap-1" role="group" aria-label="Propina">
-        {TIP_OPTIONS.map((tip) => {
-          const active = tipMode === tip.id;
-          return (
-            <button
-              key={tip.id}
-              type="button"
-              aria-pressed={active}
-              onClick={() => onModeChange(tip.id)}
-              className={cn(
-                "min-h-11 rounded-lg bg-surface text-[14px] shadow-card transition-[background,box-shadow,color,transform] duration-150 ease-(--ease) active:scale-[0.97]",
-                active
-                  ? "font-semibold text-primary shadow-[0_0_0_1.5px_var(--primary),0_2px_5px_rgba(99,91,255,0.18)]"
-                  : "font-medium text-text hover:bg-bg hover:text-ink hover:shadow-card-hover",
-              )}
-            >
-              {tip.label}
-            </button>
-          );
-        })}
+      </div>
+      <div
+        className="ps-seg"
+        role="group"
+        aria-labelledby="tip-label"
+        style={{ "--i": index } as CSSProperties}
+      >
+        <span className="ps-seg-thumb" aria-hidden="true" />
+        {TIP_OPTIONS.map((tip) => (
+          <button
+            key={tip.id}
+            type="button"
+            aria-pressed={tipMode === tip.id}
+            onClick={() => onModeChange(tip.id)}
+          >
+            {tip.label}
+          </button>
+        ))}
       </div>
       {tipMode === "otra" ? (
-        <div className="animate-[fade_0.18s_ease-out]">
-          <CurrencyInput
-            aria-label="Propina en pesos"
-            value={tipCustom}
-            onChange={(event) => onCustomChange(sanitizePesosInput(event.target.value))}
-          />
+        <div className="ps-tip-custom">
+          <div className="ps-tip-row">
+            <label htmlFor="f-tip">Propina</label>
+            <input
+              id="f-tip"
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
+              placeholder="$0.00"
+              value={tipCustom}
+              onChange={(event) => onCustomChange(sanitizePesosInput(event.target.value))}
+            />
+          </div>
         </div>
       ) : null}
-    </Field>
+    </section>
   );
 }

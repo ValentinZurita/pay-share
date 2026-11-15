@@ -9,32 +9,27 @@ import { formatMXN } from "@/lib/money";
 
 function MethodOption({
   icon,
+  iconTone,
   title,
   subtitle,
   disabled,
   onClick,
 }: {
   icon: ReactNode;
+  iconTone: "phone" | "qr";
   title: string;
   subtitle: string;
   disabled?: boolean;
   onClick: () => void;
 }) {
   return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onClick}
-      className="flex min-h-16 w-full items-center gap-3 rounded-lg bg-surface p-3.5 text-left shadow-card transition-shadow hover:shadow-card-hover disabled:opacity-60"
-    >
-      <span className="grid h-9 w-9 flex-none place-items-center rounded-lg bg-primary-tint text-primary">
-        {icon}
+    <button type="button" disabled={disabled} onClick={onClick} className="ps-opt">
+      <span className={iconTone === "phone" ? "ps-opt-ic ps-opt-ic-phone" : "ps-opt-ic ps-opt-ic-qr"}>{icon}</span>
+      <span className="ps-opt-tx">
+        <b className="block">{title}</b>
+        <small>{subtitle}</small>
       </span>
-      <span>
-        <b className="block text-[15px] font-semibold text-ink">{title}</b>
-        <small className="text-[13px] text-muted">{subtitle}</small>
-      </span>
-      <span className="ml-auto text-muted">
+      <span className="ps-opt-chev">
         <IconGo />
       </span>
     </button>
@@ -45,11 +40,13 @@ function MethodOption({
  * Bottom sheet allowing the diner to choose between phone push or QR CoDi payment.
  */
 export function PaymentMethodSheet({
+  totalCents,
   sending,
   onClose,
   onSelectPhone,
   onSelectQr,
 }: {
+  totalCents: number;
   sending: boolean;
   onClose: () => void;
   onSelectPhone: () => void;
@@ -57,19 +54,26 @@ export function PaymentMethodSheet({
 }) {
   return (
     <BottomSheet title="¿Cómo quieres pagar?" onClose={onClose}>
-      <MethodOption
-        icon={<IconPhone />}
-        title="Cobro a mi celular"
-        subtitle="Te llega a la app de tu banco"
-        onClick={onSelectPhone}
-      />
-      <MethodOption
-        icon={<IconQr />}
-        title="Código QR"
-        subtitle="Para guardarlo o escanearlo"
-        disabled={sending}
-        onClick={onSelectQr}
-      />
+      <p className="ps-sheet-sub">
+        Total <span className="num text-fg">{formatMXN(totalCents)}</span>
+      </p>
+      <div className="ps-opts">
+        <MethodOption
+          icon={<IconPhone />}
+          iconTone="phone"
+          title="Cobro a mi celular"
+          subtitle="Te llega a la app de tu banco"
+          onClick={onSelectPhone}
+        />
+        <MethodOption
+          icon={<IconQr />}
+          iconTone="qr"
+          title="Código QR"
+          subtitle="Para guardarlo o escanearlo"
+          disabled={sending}
+          onClick={onSelectQr}
+        />
+      </div>
       <SheetCancel />
     </BottomSheet>
   );
@@ -97,7 +101,7 @@ export function PhoneChargeSheet({
 }) {
   return (
     <BottomSheet title="¿A qué celular enviamos el cobro?" onClose={onClose}>
-      <p className="m-0 text-[14px]">
+      <p className="ps-sheet-sub">
         El que tienes registrado en tu banco. Solo lo usamos para este cobro y no lo guardamos.
       </p>
       <Field error={error || undefined}>
@@ -110,6 +114,7 @@ export function PhoneChargeSheet({
           invalid={Boolean(error)}
           value={phone}
           onChange={(event) => onPhoneChange(event.target.value.replace(/\D/g, "").slice(0, 10))}
+          className="ps-phone-field"
         />
       </Field>
       <Button

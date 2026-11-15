@@ -22,7 +22,7 @@ async function MesaPage({ params }: { params: Promise<{ id: string }> }) {
   const tableId = Number(id);
   if (!Number.isInteger(tableId)) notFound();
   let snapshot;
-  let name = "Pay Share";
+  let name = "PayShare";
   let mockMode = true;
   try {
     snapshot = await getTableSnapshot(tableId);

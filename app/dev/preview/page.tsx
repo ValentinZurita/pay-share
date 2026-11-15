@@ -1,7 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { notFound } from "next/navigation";
+import { Suspense, useState } from "react";
+import { notFound, useSearchParams } from "next/navigation";
+import { assess } from "@/components/mesa/mesa-app";
+import { PaymentForm } from "@/components/mesa/payment-form";
+import { PaymentMethodSheet, PhoneChargeSheet } from "@/components/mesa/payment-sheets";
+import { ActivePaymentView, PaymentDoneView, type PaymentSession } from "@/components/mesa/payment-views";
+import type { TipMode } from "@/components/mesa/tip-selector";
 import { BrandBar, cajaSubtitle } from "@/components/ui/brand-bar";
 import { Badge } from "@/components/ui/badge";
 import { Banner } from "@/components/ui/banner";
@@ -10,12 +15,13 @@ import { Button } from "@/components/ui/button";
 import { Card, KeyValueList } from "@/components/ui/card";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { EmptyState } from "@/components/ui/empty-state";
-import { IconCheck, IconMore, IconReceipt } from "@/components/ui/icons";
+import { IconCheck, IconLock, IconMore, IconReceipt } from "@/components/ui/icons";
 import { CurrencyInput, Field, TextInput } from "@/components/ui/input";
 import { DinerShell, FooterBar, ScrollBody } from "@/components/ui/page-shell";
 import { StatusPill } from "@/components/ui/status-pill";
 import { ErrorText, LabelText, MutedNote, PageTitle } from "@/components/ui/text";
 import { Ticket } from "@/components/ui/ticket";
+import { formatMXN } from "@/lib/money";
 import type { Snapshot, SnapshotPayment } from "@/lib/types";
 
 const PREVIEW_OPENED_AT = "2026-11-14T18:30:00.000Z";
@@ -55,8 +61,185 @@ function previewBill(totalCents: number, payments: SnapshotPayment[], id = 12): 
   };
 }
 
+const PREVIEW_QR = "codi-preview-payshare";
+
+function TicketPreview() {
+  return (
+    <DinerShell>
+      <BrandBar subtitle="Paga con CoDi" chip="Mesa 4" />
+      <ScrollBody>
+        <Ticket
+          restaurant="Casa Nopal"
+          tableName="Mesa 4"
+          createdAt={PREVIEW_OPENED_AT}
+          bill={previewBill(184000, previewPayments)}
+          pending={{ name: "Ana", partCents: 31000, tipCents: 3100 }}
+        />
+        <Ticket restaurant="Casa Nopal" tableName="Mesa 6" createdAt={PREVIEW_OPENED_AT} bill={previewBill(184000, [], 13)} />
+        <Ticket
+          restaurant="Casa Nopal"
+          tableName="Mesa 2"
+          createdAt={PREVIEW_OPENED_AT}
+          bill={previewBill(184000, [previewPay({ id: 9, name: "Ana", amountCents: 184000, tipCents: 0, status: "paid", paidAt: "2026-11-15T03:40:00.000Z" })], 9)}
+        />
+        <Ticket restaurant="Casa Nopal" tableName="Mesa 4" createdAt={PREVIEW_OPENED_AT} staff bill={previewBill(184000, previewPayments)} />
+      </ScrollBody>
+    </DinerShell>
+  );
+}
+
+function PayPreview({ initialSheet }: { initialSheet: "method" | "phone" | null }) {
+  const bill = previewBill(184000, previewPayments);
+  const [name, setName] = useState("Ana");
+  const [amount, setAmount] = useState("310");
+  const [tipMode, setTipMode] = useState<TipMode>("10");
+  const [tipCustom, setTipCustom] = useState("");
+  const [phone, setPhone] = useState("5512345678");
+  const [sheet, setSheet] = useState(initialSheet);
+  const quote = assess(amount, bill.remainingCents, tipMode, tipCustom);
+
+  return (
+    <DinerShell>
+      <BrandBar subtitle="Paga con CoDi" chip="Mesa 4" />
+      <ScrollBody>
+        <Ticket
+          bill={bill}
+          restaurant="Casa Nopal"
+          tableName="Mesa 4"
+          createdAt={PREVIEW_OPENED_AT}
+          pending={{ name, partCents: quote.part, tipCents: quote.tip }}
+        />
+        <PaymentForm
+          amount={amount}
+          tipMode={tipMode}
+          tipCustom={tipCustom}
+          tipCents={quote.tip}
+          name={name}
+          error={quote.error}
+          remainingLabel={formatMXN(bill.remainingCents)}
+          shareLabel={
+            quote.ok && bill.totalCents > 0
+              ? `Tu parte es el ${Math.round((quote.part / bill.totalCents) * 100)}% de la cuenta`
+              : ""
+          }
+          onAmountChange={setAmount}
+          onPayRemaining={() => setAmount((bill.remainingCents / 100).toFixed(2))}
+          onTipModeChange={setTipMode}
+          onTipCustomChange={setTipCustom}
+          onNameChange={(value) => setName(value.slice(0, 40))}
+        />
+      </ScrollBody>
+      <FooterBar>
+        <Button variant="primary" disabled={!quote.ok} iconEnd={<IconLock />}>
+          {quote.ok ? `Pagar ${formatMXN(quote.sum)}` : "Pagar"}
+        </Button>
+        <p className="m-0 text-center text-[12.5px] text-fg3">Pagas desde la app de tu banco. Sin comisión.</p>
+      </FooterBar>
+      {sheet === "method" ? (
+        <PaymentMethodSheet
+          totalCents={quote.sum}
+          sending={false}
+          onClose={() => setSheet(null)}
+          onSelectPhone={() => setSheet("phone")}
+          onSelectQr={() => setSheet(null)}
+        />
+      ) : null}
+      {sheet === "phone" ? (
+        <PhoneChargeSheet
+          phone={phone}
+          totalCents={quote.sum}
+          error=""
+          sending={false}
+          onPhoneChange={setPhone}
+          onSubmit={() => setSheet(null)}
+          onClose={() => setSheet(null)}
+        />
+      ) : null}
+    </DinerShell>
+  );
+}
+
+function WaitPreview({ kind }: { kind: "qr" | "pn" }) {
+  const session: PaymentSession = {
+    paymentId: 1,
+    method: kind,
+    qrString: kind === "qr" ? PREVIEW_QR : undefined,
+    expiresAt: "2026-11-15T22:00:00.000Z",
+    amountCents: 31000,
+    tipCents: 3100,
+    phoneLast4: "4567",
+  };
+  return (
+    <ActivePaymentView
+      session={session}
+      tableName="Mesa 4"
+      billId={12}
+      expired={false}
+      remainLabel="14:32"
+      saved={false}
+      canShare={kind === "qr"}
+      sending={false}
+      connectionError={false}
+      mockMode
+      onBack={() => undefined}
+      onRegenerateQr={() => undefined}
+      onSaveQr={() => undefined}
+      onShareQr={() => undefined}
+      onSwitchToQr={() => undefined}
+    />
+  );
+}
+
+function DonePreview() {
+  const session: PaymentSession = {
+    paymentId: 1,
+    method: "qr",
+    expiresAt: "2026-11-15T22:00:00.000Z",
+    amountCents: 31000,
+    tipCents: 3100,
+  };
+  return (
+    <PaymentDoneView
+      tableName="Mesa 4"
+      restaurant="Casa Nopal"
+      session={session}
+      remainingCents={31000}
+      paidAt="2026-11-15T03:19:00.000Z"
+      onDone={() => undefined}
+    />
+  );
+}
+
+function NoBillPreview() {
+  return (
+    <DinerShell>
+      <BrandBar subtitle="Paga con CoDi" chip="Mesa 4" />
+      <ScrollBody>
+        <EmptyState icon={<IconReceipt />} title="Esta mesa no tiene cuenta abierta" description="Pídela a tu mesero." />
+      </ScrollBody>
+    </DinerShell>
+  );
+}
+
 export default function PreviewPage() {
   if (process.env.NODE_ENV === "production") notFound();
+  return (
+    <Suspense fallback={null}>
+      <PreviewRouter />
+    </Suspense>
+  );
+}
+
+function PreviewRouter() {
+  const vista = useSearchParams().get("vista") ?? "primitivos";
+  if (vista === "ticket") return <TicketPreview />;
+  if (vista === "pago") return <PayPreview initialSheet={null} />;
+  if (vista === "metodo") return <PayPreview initialSheet="method" />;
+  if (vista === "celular") return <PayPreview initialSheet="phone" />;
+  if (vista === "qr") return <WaitPreview kind="qr" />;
+  if (vista === "espera-celular") return <WaitPreview kind="pn" />;
+  if (vista === "pagado") return <DonePreview />;
+  if (vista === "sin-cuenta") return <NoBillPreview />;
   return <PreviewGallery />;
 }
 

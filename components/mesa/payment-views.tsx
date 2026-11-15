@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Banner } from "@/components/ui/banner";
 import { BrandBar } from "@/components/ui/brand-bar";
 import { Button } from "@/components/ui/button";
-import { Card, KeyValueList } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { IconBack, IconCheck, IconPhone } from "@/components/ui/icons";
 import { DinerShell, FooterBar, ScrollBody } from "@/components/ui/page-shell";
@@ -31,7 +30,7 @@ const QR_STEPS = [
 function SimulateBox({ paymentId }: { paymentId: number }) {
   const [busy, setBusy] = useState(false);
   return (
-    <div className="flex flex-col gap-2 self-stretch rounded-lg border border-dashed border-line-strong px-3 py-2.5 text-center">
+    <div className="ps-demo text-center">
       <p className="m-0 text-[12px] text-muted">
         Solo para demostración. Aquí la persona paga en su banco.
       </p>
@@ -100,6 +99,7 @@ export function ActivePaymentView({
       <BrandBar
         title={`Pagar ${total}`}
         subtitle={`${tableName} · cuenta ${billId}`}
+        showTheme={false}
         leading={
           <button type="button" className="ps-round" aria-label="Cambiar monto" onClick={onBack}>
             <IconBack />
@@ -110,33 +110,25 @@ export function ActivePaymentView({
       {isQr && session.qrString ? (
         <ScrollBody>
           <div className="flex flex-col items-center gap-3 text-center">
-            <QrImage value={session.qrString} dim={expired} />
+            <QrImage value={session.qrString} dim={expired} label={`Código QR de CoDi por ${total}`} />
             <StatusPill loading={!expired}>
               {expired ? "Este código venció" : `Esperando tu pago · vence en ${remainLabel}`}
             </StatusPill>
-            <Card className="w-full">
-              <ol className="m-0 list-none px-4 py-1 text-left">
-                {QR_STEPS.map((step, index) => (
-                  <li
-                    key={step}
-                    className={`flex items-center gap-3 py-[11px] text-[14px] text-ink ${
-                      index > 0 ? "border-t border-line" : ""
-                    }`}
-                  >
-                    <b className="grid h-[22px] w-[22px] flex-none place-items-center rounded-full bg-primary-tint text-[12px] font-semibold text-primary-press">
-                      {index + 1}
-                    </b>
-                    {step}
-                  </li>
-                ))}
-              </ol>
-            </Card>
+            <ol className="ps-steps">
+              {QR_STEPS.map((step, index) => (
+                <li key={step}>
+                  <i>{index + 1}</i>
+                  {step}
+                </li>
+              ))}
+            </ol>
             {mockMode ? <SimulateBox paymentId={session.paymentId} /> : null}
           </div>
         </ScrollBody>
       ) : (
         <ScrollBody>
           <EmptyState
+            className="ps-phone-wait"
             icon={<IconPhone />}
             title="Revisa la app de tu banco"
             description={
@@ -174,9 +166,9 @@ export function ActivePaymentView({
               )}
             </Button>
             {canShare && !expired ? (
-              <Button variant="secondary" onClick={onShareQr}>
-                Compartir
-              </Button>
+            <Button variant="quiet" onClick={onShareQr}>
+              Compartir
+            </Button>
             ) : null}
           </>
         ) : (
@@ -192,41 +184,81 @@ export function ActivePaymentView({
 /**
  * Confirmation view shown once the diner's payment is settled.
  */
+function clockLabel(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("es-MX", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: "America/Mexico_City",
+  }).format(date);
+}
+
 export function PaymentDoneView({
   tableName,
+  restaurant,
   session,
   remainingCents,
+  paidAt,
   onDone,
 }: {
   tableName: string;
+  restaurant: string;
   session: PaymentSession;
   remainingCents: number;
+  paidAt?: string | null;
   onDone: () => void;
 }) {
+  const when = paidAt ? clockLabel(paidAt) : "";
+  const method = session.method === "qr" ? "CoDi · QR" : "CoDi · celular";
+
   return (
     <DinerShell>
       <BrandBar subtitle="Paga con CoDi" chip={tableName} />
       <ScrollBody>
-        <EmptyState
-          tone="success"
-          icon={<IconCheck />}
-          title="Pago recibido"
-        >
-          <p className="m-0 text-[38px] font-bold leading-[1.1] tracking-[-0.035em] text-ink num">
-            {formatMXN(session.amountCents + session.tipCents)}
-          </p>
-          <KeyValueList
-            className="w-full text-left"
-            items={[
-              { label: "Tu parte", value: formatMXN(session.amountCents) },
-              { label: "Propina", value: formatMXN(session.tipCents), accent: "warn" },
-              {
-                label: "Restante de la mesa",
-                value: remainingCents === 0 ? "Cubierta" : formatMXN(remainingCents),
-              },
-            ]}
-          />
-        </EmptyState>
+        <div className="ps-done">
+          <span className="ps-done-check">
+            <IconCheck />
+          </span>
+          <h1 className="ps-done-title" role="status">
+            Pago recibido
+          </h1>
+          <p className="ps-done-amt">{formatMXN(session.amountCents + session.tipCents)}</p>
+          <section className="ps-ticket w-full" aria-label="Comprobante">
+            <div className="ps-ticket-body">
+              <div className="ps-ticket-head">
+                <span className="ps-ticket-brand">COMPROBANTE</span>
+                <span className="ps-ticket-meta">
+                  {restaurant} · {tableName}
+                  {when ? ` · ${when}` : ""}
+                </span>
+              </div>
+              <div className="ps-ticket-rule" aria-hidden="true" />
+              <div className="ps-ticket-line">
+                <span>Tu parte</span>
+                <span className="ps-ticket-amt">{formatMXN(session.amountCents)}</span>
+              </div>
+              <div className="ps-ticket-line">
+                <span>Propina</span>
+                <span className="ps-ticket-amt ps-tip-amt">{formatMXN(session.tipCents)}</span>
+              </div>
+              <div className="ps-ticket-line">
+                <span>Método</span>
+                <span className="ps-ticket-amt">{method}</span>
+              </div>
+            </div>
+            <div className="ps-ticket-stub">
+              <div className="ps-ticket-line ps-ticket-total">
+                <span>Restante de la mesa</span>
+                <span className="ps-ticket-amt">
+                  {remainingCents === 0 ? "Cubierta" : formatMXN(remainingCents)}
+                </span>
+              </div>
+            </div>
+            <div className="ps-ticket-edge" aria-hidden="true" />
+          </section>
+        </div>
       </ScrollBody>
       <FooterBar tone="integrated">
         <Button variant="primary" onClick={onDone}>
