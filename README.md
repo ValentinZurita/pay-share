@@ -77,6 +77,6 @@ Comandos: `pnpm test` · `pnpm typecheck` · `pnpm build`
 
 <br />
 
-Next.js, React, TypeScript, Tailwind CSS, `@supabase/supabase-js`, `qrcode`, `standardwebhooks`, `@vercel/blob` y el API de pey. Hecho durante el Cursor Hackatón México (Villahermosa) con ayuda de Cursor.
+Next.js, React, TypeScript, Tailwind CSS, `@supabase/supabase-js`, `qrcode`, `standardwebhooks`, `@vercel/blob` y el API de pey. Hecho durante el Cursor Hackatón México (Villahermosa) con ayuda de Cursor. Licencia [MIT](LICENSE). Notas de diseño y plan en [`docs/`](docs).
 
 </details>
