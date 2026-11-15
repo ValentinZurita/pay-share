@@ -3,7 +3,7 @@
 > Complemento de `PLAN.md`. Todo agente que toque interfaz (tareas F2.5–F2.8, F4.1–F4.4) lee este documento antes de escribir código.
 > Referencia visual navegable: `design/prototipo-ui.html` (abrir en el navegador).
 >
-> **AVISO (2026-11-15): el rediseño PayShare está en `docs/rediseno/referencia.html`.** En lo visual manda esa referencia, salvo el ticket: papel plano en `--card`, sin degradado ni tinte, con una sombra corta. Los tokens vigentes están en `app/globals.css`. La cuenta es un ticket (no el anillo). El tema sigue siempre al sistema (`prefers-color-scheme`); no hay selector ni `localStorage`. Siguen vigentes los textos (§6), las reglas móviles (§7) y la accesibilidad (§8), salvo el placeholder del nombre y el texto de pagos vacíos, que no se muestran. Donde §2, §3 o §9 hablen del anillo, de un solo tema claro, de un selector de tema, o prohíban degradados, manda este aviso.
+> **AVISO (2026-11-15): el rediseño PayShare está en `docs/rediseno/referencia.html`.** En lo visual manda esa referencia, salvo el ticket: papel plano en `--card`, sin degradado, con una sombra corta. El renglón «por pagar» lleva el tinte `--you-tint` y el texto en `--fg` / `--fg2`. En escritorio ancho con puntero fino, el pie de acción no lleva franja de vidrio y queda en la columna, sin tapar el contenido. Los tokens vigentes están en `app/globals.css`. La cuenta es un ticket (no el anillo). El tema sigue siempre al sistema (`prefers-color-scheme`); no hay selector ni `localStorage`. Siguen vigentes los textos (§6), las reglas móviles (§7) y la accesibilidad (§8), salvo el placeholder del nombre y el texto de pagos vacíos, que no se muestran. Donde §2, §3 o §9 hablen del anillo, de un solo tema claro, de un selector de tema, o prohíban degradados, manda este aviso.
 
 ---
 
@@ -64,7 +64,7 @@ Ningún campo de texto por debajo de 16 px (evita el zoom automático de iOS).
 
 - Escala de espacios: 4 · 8 · 12 · 16 · 20 · 24 · 32. Margen lateral de pantalla: 20 px (16 px si el ancho es < 380 px).
 - Formas muy redondas: botones, chips y campos en píldora (999); tarjetas y filas 20–28; bloque selva con las esquinas inferiores a 34; hojas inferiores 32 arriba.
-- Vidrio (degradado leve + `backdrop-filter` + filo de luz) en lo que flota: encabezado, campos, barras y hojas. El ticket no lleva `backdrop-filter` ni degradado: cabecera, cuerpo, talón y dientes son `--card` sólido, y la sombra es un `drop-shadow` corto. El velo de las hojas es `--scrim`.
+- Vidrio (degradado leve + `backdrop-filter` + filo de luz) en lo que flota: encabezado, campos, barras y hojas. En el teléfono el pie de acción también es vidrio y el scroll reserva su altura. En escritorio ancho con puntero fino (`min-width: 768px` y `hover: hover` y `pointer: fine`) ese pie queda en la columna, sin fondo, sin blur, sin borde y sin sombra: el botón y la nota se leen sobre el fondo y no tapan el contenido. El ticket no lleva `backdrop-filter` ni degradado: cabecera, cuerpo, talón y dientes son `--card` sólido, y la sombra es un `drop-shadow` corto. El velo de las hojas es `--scrim`.
 - Iconos: de trazo (2 px), 22 px, color heredado. Usar los menos posibles: atrás, candado, palomita, teléfono, QR, flecha. Sin emojis.
 
 ### Movimiento
@@ -82,7 +82,7 @@ Ningún campo de texto por debajo de 16 px (evita el zoom automático de iOS).
 
 Viven en `components/ui/`. Son pocos a propósito; no crear variantes que no se usen.
 
-La cuenta, en comensal y en caja, es el **Ticket**: papel plano (`--card`) en cabecera, cuerpo y talón, sin degradado ni tinte; muescas laterales, perforación, borde inferior festoneado y una sombra corta de baja opacidad. Muestra restaurante, mesa y total. La lista de pagos solo aparece si hay pagos. El talón lleva la etiqueta y el monto grande, sin repetir el total. En caja el talón dice "Restante en efectivo". El anillo (`MesaRing`) ya no se usa.
+La cuenta, en comensal y en caja, es el **Ticket**: papel plano (`--card`) en cabecera, cuerpo y talón, sin degradado; muescas laterales, perforación, borde inferior festoneado y una sombra corta de baja opacidad. La tipografía es fina y en ritmo de 4 y 8 px: el restaurante en la pila del sistema (`--fg`, 13/600), la línea de mesa en `--fg2`, el total en `--fg` con la cifra en mono, la etiqueta de sección en versalitas `--fg2`, el nombre del renglón en peso medio y el detalle (propina, hora) más pequeño en `--fg2`. Las cifras usan `--mono` y `tabular-nums`. El renglón «por pagar» tiene el tinte `--you-tint` y texto `--fg` (detalle `--fg2`). El talón lleva la etiqueta y el monto grande, sin repetir el total. En caja el talón dice "Restante en efectivo". El anillo (`MesaRing`) ya no se usa.
 
 | Componente | Especificación |
 |---|---|
@@ -95,7 +95,7 @@ La cuenta, en comensal y en caja, es el **Ticket**: papel plano (`--card`) en ca
 | **StatusPill** | Píldora blanca con indicador giratorio + texto ("Esperando tu pago · vence en 14:32"), con `role="status"` |
 | **BottomSheet** | Sube desde abajo, radio 32 arriba, asa gris, velo detrás. Opciones como filas grandes sobre niebla con icono lima en círculo selva. Se cierra con el velo, "Cancelar" o `Esc`. Atrapa el foco y lo devuelve al cerrar. En escritorio (≥ 768 px), diálogo centrado de 420 px |
 | **TopBar clara** | Para pantallas sin hero (QR, cobro enviado): botón redondo blanco de volver de 40 + título display y subtítulo |
-| **ActionBar** | Fija abajo sobre niebla, sin borde, relleno `10 20 18` + `env(safe-area-inset-bottom)`. Contiene el botón principal y, en el comensal, la línea del candado |
+| **ActionBar** | En el teléfono, fija abajo sobre vidrio, relleno `12 16 22` + `env(safe-area-inset-bottom)`, y el scroll reserva esa altura. En escritorio ancho con puntero fino, el contenedor entra en la columna: sin fondo, blur, borde ni sombra, y no tapa el contenido. Lleva el botón principal y, en el comensal, la línea del candado |
 | **StateScreen** | Centro de pantalla: círculo blanco de 76 con icono selva, título display 26, una línea de explicación |
 
 Reglas comunes: zona táctil mínima 44×44; foco visible (contorno azul de 2 px, separado 2 px); todos los campos con `<label>`.
@@ -114,7 +114,7 @@ Estructura fija: `TopBar` → contenido con desplazamiento → `ActionBar`. Altu
 2. **¿Cuánto pagas tú?** `BigAmount` vacío con marcador `0`. Al escribir, la rebanada blanca crece en el anillo y aparece debajo una línea gris: "Después de tu pago faltarán $200.00."
 3. **Un solo atajo:** enlace "Pagar todo lo que falta", que llena el campo. Sin atajos de fracciones (se probaron y complicaban la pantalla).
 4. **Propina:** píldoras `No · 10% · 15% · 20% · Otra`. Empieza en **No**. Los porcentajes se calculan sobre "tu parte"; el monto resultante se muestra a la derecha de la etiqueta ("+ $30.00"). "Otra" despliega un campo en píldora.
-5. **ActionBar:** botón lima `Pagar $330.00 →` (suma en vivo). Deshabilitado y con texto "Pagar" mientras el monto no sea válido. Debajo: candado + "Pagas desde la app de tu banco. Sin comisión."
+5. **ActionBar:** botón `Pagar $330.00` (suma en vivo). Deshabilitado y con texto "Pagar" mientras el monto no sea válido. Debajo: "Pagas desde la app de tu banco. Sin comisión." En el teléfono el pie es vidrio fijo; en escritorio ancho con puntero fino no hay franja y el botón queda bajo el formulario.
 
 Validación en vivo, sin esperar al botón: si la parte supera lo que falta → el número pasa a rojo y aparece "Solo faltan $200.00."
 
@@ -252,7 +252,7 @@ No afirmar nada fiscal sobre las propinas en la interfaz; solo "aparte".
 
 ## 9. Lo que no entra
 
-Menús o pestañas de navegación · pie de página · logotipos de terceros o insignias de "pago seguro" inventadas · ilustraciones o fotos decorativas · colores literales fuera de los tokens · `backdrop-filter` dentro del ticket · degradado o tinte en el ticket · avisos emergentes (toasts) · selector de idioma · selector de tema · onboarding o tutoriales · animaciones en bucle · textos de marketing. El vidrio, la barra de avance de la mesa y el tema automático (claro u oscuro según el sistema) sí entran. El ticket es plano.
+Menús o pestañas de navegación · pie de página · logotipos de terceros o insignias de "pago seguro" inventadas · ilustraciones o fotos decorativas · colores literales fuera de los tokens · `backdrop-filter` dentro del ticket · degradado en el papel del ticket · avisos emergentes (toasts) · selector de idioma · selector de tema · onboarding o tutoriales · animaciones en bucle · textos de marketing. El vidrio, la barra de avance de la mesa y el tema automático (claro u oscuro según el sistema) sí entran. El ticket es plano; el único tinte es el del renglón «por pagar». En escritorio ancho con puntero fino, el pie de acción no lleva franja.
 
 ---
 

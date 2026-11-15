@@ -24,6 +24,7 @@
   --sheet: rgba(250, 250, 252, 0.86);
   --accent: #0071e3;
   --accent-tint: rgba(0, 113, 227, 0.1);
+  --you-tint: rgba(0, 113, 227, 0.1);
   --ok: #1f8a3b;
   --ok-tint: rgba(52, 199, 89, 0.16);
   --ok-solid: #34c759;
@@ -100,6 +101,7 @@
     --sheet: rgba(36, 36, 38, 0.86);
     --accent: #2997ff;
     --accent-tint: rgba(41, 151, 255, 0.18);
+    --you-tint: rgba(41, 151, 255, 0.1);
     --ok: #30d158;
     --ok-tint: rgba(48, 209, 88, 0.18);
     --ok-solid: #30d158;
@@ -410,6 +412,26 @@
   }
 }
 
+/* Escritorio con puntero fino: sin franja. El pie vuelve al flujo para no tapar el contenido. */
+@media (min-width: 768px) and (hover: hover) and (pointer: fine) {
+  .ps-footer {
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .ps-shell > .ps-footer {
+    position: static;
+  }
+
+  .ps-shell:has(> .ps-footer) > .ps-scroll {
+    padding-bottom: 24px;
+  }
+}
+
 .num {
   font-variant-numeric: tabular-nums;
 }
@@ -465,8 +487,8 @@
 .ps-ticket-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 20px 20px 18px;
+  gap: 8px;
+  padding: 16px 20px;
   border-radius: 20px 20px 0 0;
   background: var(--card);
   -webkit-mask:
@@ -480,8 +502,8 @@
 .ps-ticket-stub {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 18px 20px 14px;
+  gap: 8px;
+  padding: 16px 20px 12px;
   background: var(--card);
   -webkit-mask:
     radial-gradient(circle at 0 0, #0000 11px, #000 11.5px) left / 51% 100% no-repeat,
@@ -495,9 +517,9 @@
   content: "";
   position: absolute;
   top: 0;
-  right: 18px;
-  left: 18px;
-  border-top: 1.5px dashed var(--perf);
+  right: 20px;
+  left: 20px;
+  border-top: 1px dashed var(--perf);
 }
 
 .ps-ticket-edge {
@@ -508,26 +530,29 @@
 .ps-ticket-head {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   text-align: center;
 }
 
 .ps-ticket-brand {
-  font-family: var(--mono);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.2em;
+  line-height: 1.25;
+  letter-spacing: 0.06em;
   color: var(--fg);
 }
 
 .ps-ticket-meta {
-  font-family: var(--mono);
-  font-size: 11.5px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
   color: var(--fg2);
 }
 
 .ps-ticket-rule {
-  border-top: 1.5px dashed var(--sep);
+  border-top: 1px dashed var(--perf);
 }
 
 .ps-ticket-line {
@@ -535,14 +560,21 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  font-size: 14.5px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: -0.011em;
   color: var(--fg);
 }
 
 .ps-ticket-amt {
   font-family: var(--mono);
-  font-size: 14.5px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
+  text-align: right;
   white-space: nowrap;
   color: var(--fg);
 }
@@ -555,7 +587,8 @@
 .ps-ticket-label {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.09em;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--fg2);
 }
@@ -563,7 +596,7 @@
 .ps-ticket-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -571,45 +604,50 @@
 
 .ps-ticket-row {
   display: flex;
-  align-items: flex-start;
+  align-items: baseline;
   justify-content: space-between;
   gap: 12px;
   margin: 0 -8px;
-  padding: 0 8px;
-  border-radius: 10px;
+  padding: 4px 8px;
+  border-radius: 8px;
 }
 
 .ps-ticket-who {
   display: flex;
   min-width: 0;
   flex-direction: column;
+  gap: 0;
 }
 
 .ps-ticket-who b {
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.011em;
   overflow-wrap: anywhere;
+  color: var(--fg);
 }
 
 .ps-ticket-who small {
-  font-family: var(--mono);
-  font-size: 11.5px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
   color: var(--fg2);
 }
 
 .ps-ticket-you {
   margin: 0 -8px;
-  padding: 7px 8px;
-  background: var(--accent-tint);
-  color: var(--accent);
+  padding: 8px;
+  background: var(--you-tint);
+  color: var(--fg);
   animation: ps-ticket-in 0.3s ease both;
 }
 
 .ps-ticket-you b,
-.ps-ticket-you small,
 .ps-ticket-you .ps-ticket-amt {
-  color: var(--accent);
+  color: var(--fg);
 }
 
 .ps-ticket-fresh {
@@ -626,17 +664,18 @@
 .ps-ticket-rest-label {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding-bottom: 5px;
+  gap: 4px;
+  padding-bottom: 4px;
 }
 
 .ps-ticket-big {
   font-family: var(--mono);
-  font-size: 38px;
+  font-size: 36px;
   font-weight: 600;
   line-height: 1;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
+  text-align: right;
   white-space: nowrap;
   color: var(--fg);
 }
@@ -658,12 +697,12 @@
 
 .ps-ticket-bar {
   display: flex;
-  gap: 3px;
-  height: 6px;
+  gap: 2px;
+  height: 4px;
 }
 
 .ps-ticket-bar span {
-  border-radius: 3px;
+  border-radius: 2px;
   transition: flex-grow 0.5s var(--ease);
 }
 
@@ -681,12 +720,18 @@
 
 .ps-ticket-cap {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: 0;
   color: var(--fg2);
 }
 
 .ps-ticket-cap b {
-  font-weight: 600;
+  font-family: var(--mono);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
   color: var(--fg);
 }
 
