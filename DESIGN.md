@@ -1,9 +1,9 @@
-# DESIGN — Guía de interfaz de Pay Share
+# DESIGN — Guía de interfaz de PayShare
 
 > Complemento de `PLAN.md`. Todo agente que toque interfaz (tareas F2.5–F2.8, F4.1–F4.4) lee este documento antes de escribir código.
 > Referencia visual navegable: `design/prototipo-ui.html` (abrir en el navegador).
 >
-> **AVISO (2026-11-14): el estilo visual está en revisión.** El prototipo ya va en su cuarta versión (estética de checkout financiero: fondo gris azulado, superficies blancas con sombra fina, tinta azul marino, acento índigo, Inter, radios de 8–12 px, etiquetas de estado). Las secciones 2 y 3 y los detalles visuales de las secciones 4 y 5 de este documento todavía describen la versión anterior (verde selva y lima). Además, **el anillo se eliminó**: la tarjeta de arriba ahora es "la cuenta", como un recibo (Total de la cuenta en grande → un renglón por pago con el nombre de quien pagó → Restante), y el formulario de pago tiene un campo opcional "Tu nombre". Donde este documento mencione `MesaRing`, `Hero` con anillo o "Falta por pagar", ya no aplica. **Hasta que se sincronicen, en lo visual manda el prototipo** (sus variables CSS en `:root` son los tokens vigentes). Siguen vigentes sin cambios: los principios (§1), la estructura y el contenido de cada pantalla (§4 y §5), los textos (§6), las reglas móviles (§7), accesibilidad (§8), lo que no entra (§9) y la lista de verificación (§10).
+> **AVISO (2026-11-15): el rediseño PayShare está en `docs/rediseno/referencia.html`.** En lo visual manda esa referencia; los tokens vigentes están en `app/globals.css`. La cuenta es un ticket (no el anillo). Hay tres temas: Claro, Auto y Oscuro (`localStorage` `ps-theme`, clase `t-light` / `t-auto` / `t-dark` en `<html>`). Siguen vigentes los textos (§6), las reglas móviles (§7) y la accesibilidad (§8). Donde §2, §3 o §9 hablen del anillo, de un solo tema claro, o prohíban degradados, manda este aviso.
 
 ---
 
@@ -28,39 +28,21 @@ Qué transmite seguridad (y hay que conservar): el nombre del restaurante y de l
 
 ### Color
 
-Un solo tema claro para el MVP (el QR necesita fondo blanco y la consistencia importa más que el modo oscuro). Declarar `color-scheme: light`.
+Tres temas, recordados en `localStorage` con la clave `ps-theme`:
 
-| Token | Valor | Uso |
-|---|---|---|
-| `--forest` (Selva) | `#0A3A2A` | Bloque superior con el anillo; pantalla de pago recibido |
-| `--forest-2` | `#12503B` | Superficies elevadas sobre selva (insignia de mesa, botón redondo, resumen) |
-| `--on-forest` | `#F3F8F2` | Texto sobre selva |
-| `--on-forest-muted` | `#A9C4B8` | Texto secundario sobre selva |
-| `--track` | `rgba(255,255,255,.16)` | Pista vacía del anillo sobre selva |
-| `--lime` (Lima) | `#C9F158` | Acción principal; rebanadas pagadas del anillo; palomita de confirmación |
-| `--lime-press` | `#B6E13C` | Lima presionada / hover |
-| `--mango` (Mango) | `#FFB547` | Propina sobre fondo selva |
-| `--tip-ink` | `#8A5300` | Propina sobre fondo claro |
-| `--ink` (Tinta) | `#0D1512` | Texto, montos, opción seleccionada, botón oscuro |
-| `--muted` | `#5F6B66` | Texto secundario, etiquetas |
-| `--bg` (Niebla) | `#F1F4F0` | Fondo de la app |
-| `--surface` | `#FFFFFF` | Tarjetas, hojas inferiores |
-| `--line` | `#DFE5DE` | Divisores, pista del anillo sobre claro |
-| `--line-strong` | `#C3CCC4` | Bordes de opciones y campos |
-| `--danger` (Chile) | `#C2311F` | **Solo** errores de validación o de sistema |
+- **Claro** (por defecto, clase `t-light`): tokens en `:root`.
+- **Auto** (clase `t-auto`): sigue el día y la noche del dispositivo (`prefers-color-scheme`).
+- **Oscuro** (clase `t-dark`): tokens oscuros siempre.
 
-Reglas: la lima es para **la** acción principal y para dinero que ya entró; siempre con texto en tinta, nunca texto lima sobre blanco (no tiene contraste). Sobre fondo claro, las rebanadas pagadas del anillo van en selva. La selección (chips) es tinta sólida con texto blanco. El rojo nunca se usa en botones (cerrar mesa es un botón oscuro con confirmación). Contraste mínimo AA (4.5:1) para todo texto.
+El QR de CoDi no sigue el tema: módulos `--qr-ink` (`#111113`) sobre placa `--qr-paper` (`#ffffff`), también en oscuro.
 
-Definir los tokens una sola vez como variables CSS en `app/globals.css` y exponerlos a Tailwind según la versión instalada (en Tailwind 4, con `@theme`). Ningún componente usa colores literales.
+Tokens nuevos del rediseño, además de los nombres que ya usaba la app (`--bg`, `--surface`, `--ink`, `--muted`, `--line`, `--danger`): `--fg`, `--fg2`, `--fg3`, `--screen`, `--card`, `--paper`, `--sep`, `--fill`, `--glass`, `--accent`, `--ok`, `--warn`, `--btn`, `--on-btn`, `--tshadow`, `--qr-paper`, `--qr-ink`. Los valores claros viven en `:root`; los oscuros se repiten en `:root.t-dark` y en `@media (prefers-color-scheme: dark) { :root.t-auto }`. Ningún componente usa colores literales.
+
+Los valores numéricos no se copian aquí: la fuente es `app/globals.css`, expuesta a Tailwind 4 con `@theme inline`. Contraste mínimo AA (4.5:1) para el texto. `--danger` solo en errores. La acción principal usa `--btn` / `--on-btn`. La propina usa `--warn`.
 
 ### Tipografía
 
-Dos familias de Google Fonts, cargadas con `next/font/google`:
-
-- **Bricolage Grotesque** (`--display`): montos, títulos, botones, nombres de mesa. Es la que da carácter; siempre con `letter-spacing` negativo.
-- **Instrument Sans** (`--text`): todo lo demás.
-
-Respaldo: `system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`. Montos en listas con `font-variant-numeric: tabular-nums`.
+Pila del sistema (SF primero) con Inter de respaldo (`--font`). Montos en Geist Mono vía `next/font/google` (`--mono`), con `font-variant-numeric: tabular-nums`.
 
 | Rol | Familia · tamaño / peso | Notas |
 |---|---|---|
@@ -83,7 +65,7 @@ Ningún campo de texto por debajo de 16 px (evita el zoom automático de iOS).
 
 - Escala de espacios: 4 · 8 · 12 · 16 · 20 · 24 · 32. Margen lateral de pantalla: 20 px (16 px si el ancho es < 380 px).
 - Formas muy redondas: botones, chips y campos en píldora (999); tarjetas y filas 20–28; bloque selva con las esquinas inferiores a 34; hojas inferiores 32 arriba.
-- Sin sombras, sin degradados, casi sin bordes. La jerarquía se hace con bloques de color (selva arriba, niebla abajo) y tarjetas blancas sin borde. Única excepción: el velo oscuro detrás de una hoja inferior (`rgba(13,21,18,.5)`).
+- Vidrio (degradado leve + `backdrop-filter` + filo de luz) en lo que flota: encabezado, campos, barras y hojas. El ticket no lleva `backdrop-filter`: su padre usa `filter: drop-shadow` y el papel es un degradado opaco (`--paper`, `--stub-a`, `--stub-b`). El velo de las hojas es `--scrim`.
 - Iconos: de trazo (2 px), 22 px, color heredado. Usar los menos posibles: atrás, candado, palomita, teléfono, QR, flecha. Sin emojis.
 
 ### Movimiento
@@ -100,6 +82,8 @@ Ningún campo de texto por debajo de 16 px (evita el zoom automático de iOS).
 ## 3. Componentes
 
 Viven en `components/ui/`. Son pocos a propósito; no crear variantes que no se usen.
+
+La cuenta, en comensal y en caja, es el **Ticket**: muescas laterales, perforación, talón con degradado y brillo, borde inferior festoneado. Muestra restaurante, mesa, total, pagos y restante. En caja el talón dice "Restante en efectivo". El anillo (`MesaRing`) ya no se usa.
 
 | Componente | Especificación |
 |---|---|
@@ -268,7 +252,7 @@ No afirmar nada fiscal sobre las propinas en la interfaz; solo "aparte".
 
 ## 9. Lo que no entra
 
-Menús o pestañas de navegación · pie de página · logotipos de terceros o insignias de "pago seguro" inventadas · ilustraciones o fotos decorativas · degradados y sombras · barras de progreso rectas (el avance siempre es el anillo) · azul corporativo o cualquier color fuera de los tokens · avisos emergentes (toasts) · ventanas modales para información que cabe en línea · modo oscuro · selector de idioma · onboarding o tutoriales · campos opcionales (nombre, correo, comentarios) · animaciones en bucle · textos de marketing.
+Menús o pestañas de navegación · pie de página · logotipos de terceros o insignias de "pago seguro" inventadas · ilustraciones o fotos decorativas · colores literales fuera de los tokens · `backdrop-filter` dentro del ticket · avisos emergentes (toasts) · selector de idioma · onboarding o tutoriales · animaciones en bucle · textos de marketing. El vidrio, los degradados opacos del ticket, la barra de avance de la mesa y los tres temas sí entran.
 
 ---
 

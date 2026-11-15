@@ -97,7 +97,7 @@ export function TableDetail({
 
       <FooterBar className="min-[900px]:border-t min-[900px]:border-line min-[900px]:px-5 min-[900px]:py-4 min-[900px]:shadow-none">
         {error ? <ErrorText>{error}</ErrorText> : null}
-        <Button variant="secondary" onClick={onRequestClose}>
+        <Button variant="primary" onClick={onRequestClose}>
           Cerrar mesa
         </Button>
       </FooterBar>

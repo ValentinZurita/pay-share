@@ -2,7 +2,6 @@
 
 import { BottomSheet, SheetCancel } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
-import { CurrencyInput, Field } from "@/components/ui/input";
 import { QrImage } from "@/components/ui/qr-image";
 import { ErrorText } from "@/components/ui/text";
 import { sanitizePesosInput } from "@/lib/money";
@@ -31,6 +30,7 @@ export function BillAmountSheet({
 }) {
   const isOpen = mode === "open";
   const inputId = isOpen ? "bill-total" : "edit-total";
+  const width = `${Math.max(1, (total || "0").length)}ch`;
 
   return (
     <BottomSheet
@@ -38,19 +38,43 @@ export function BillAmountSheet({
       onClose={onClose}
     >
       <form onSubmit={onSubmit} className="flex flex-col gap-3.5">
-        <Field label="Total de la cuenta" htmlFor={inputId} error={error || undefined}>
-          <CurrencyInput
-            id={inputId}
-            type="text"
-            autoCorrect="off"
-            autoCapitalize="off"
-            spellCheck={false}
-            enterKeyHint="done"
-            invalid={Boolean(error)}
-            value={total}
-            onChange={(event) => onTotalChange(sanitizePesosInput(event.target.value))}
-          />
-        </Field>
+        <section className="ps-pay-section">
+          <div className="ps-pay-head">
+            <label htmlFor={inputId} className="text-[14px] font-medium text-fg2">
+              Total de la cuenta
+            </label>
+          </div>
+          <div className="ps-amount-card">
+            <label className={error ? "ps-amount is-error" : "ps-amount"}>
+              <span className="ps-amount-cur" aria-hidden="true">
+                $
+              </span>
+              <input
+                id={inputId}
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                enterKeyHint="done"
+                autoFocus
+                placeholder="0"
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? `${inputId}-msg` : undefined}
+                value={total}
+                onChange={(event) => onTotalChange(sanitizePesosInput(event.target.value))}
+                className="ps-amount-input"
+                style={{ width }}
+              />
+            </label>
+            {error ? (
+              <p id={`${inputId}-msg`} className="ps-amount-msg is-error" role="alert">
+                {error}
+              </p>
+            ) : null}
+          </div>
+        </section>
         <Button variant="primary" type="submit" disabled={sending}>
           {sending
             ? isOpen
@@ -117,7 +141,7 @@ export function RemoveTableSheet({
 }) {
   return (
     <BottomSheet title={`¿Eliminar la ${tableName}?`} onClose={onClose}>
-      <p className="m-0 text-[14px]">
+      <p className="ps-sheet-sub">
         {hasOpenBill
           ? "Esta mesa tiene una cuenta abierta. Ciérrala antes de quitarla."
           : "Se borra esta mesa. Su código dejará de servir."}
@@ -151,7 +175,7 @@ export function CloseTableSheet({
 }) {
   return (
     <BottomSheet title={`¿Cerrar la ${tableName}?`} onClose={onClose}>
-      <p className="m-0 text-[14px]">{copy}</p>
+      <p className="ps-sheet-sub">{copy}</p>
       <Button variant="primary" disabled={sending} onClick={onConfirm}>
         {sending ? "Cerrando mesa…" : "Sí, cerrar mesa"}
       </Button>

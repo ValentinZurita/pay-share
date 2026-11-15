@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { TableDetail } from "@/components/caja/table-detail";
 import { TableGrid } from "@/components/caja/table-grid";
+import { BrandBar, cajaSubtitle } from "@/components/ui/brand-bar";
 import {
   BillAmountSheet,
   CloseTableSheet,
@@ -226,11 +227,14 @@ export function CajaApp({ initial }: { initial: Snapshot[] }) {
   }, [selected]);
 
   const showDetail = Boolean(selected?.bill) && mobileDetail;
+  const restaurant = process.env.NEXT_PUBLIC_RESTAURANT_NAME?.trim() ?? "";
+  const openCount = tables.filter((table) => table.bill).length;
 
   return (
     <div className="mx-auto flex h-(--app-height,100dvh) w-full max-w-[1360px] flex-col overflow-hidden bg-bg">
       <div className="flex min-h-0 flex-1 flex-col min-[900px]:grid min-[900px]:grid-cols-[minmax(0,1fr)_400px] min-[900px]:grid-rows-[minmax(0,1fr)] min-[900px]:items-stretch min-[900px]:gap-7 min-[900px]:p-6 min-[900px]:px-7 min-[900px]:pb-7 min-[1200px]:grid-cols-[minmax(0,1fr)_440px] min-[1200px]:gap-8 min-[1200px]:px-9 min-[1200px]:pt-7 min-[1200px]:pb-8">
-        <div className={cn("min-h-0 min-w-0 flex-1 flex-col min-[900px]:flex", showDetail ? "hidden" : "flex")}>
+        <div className={cn("ps-shell relative min-h-0 min-w-0 flex-1 flex-col min-[900px]:flex", showDetail ? "hidden" : "flex")}>
+          <BrandBar subtitle={cajaSubtitle(restaurant)} chip={`${openCount} abiertas`} />
           <TableGrid
             tables={tables}
             selectedId={selectedId}

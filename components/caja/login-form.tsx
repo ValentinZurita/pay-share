@@ -7,7 +7,15 @@ import { Card } from "@/components/ui/card";
 import { Field, TextInput } from "@/components/ui/input";
 import { LabelText } from "@/components/ui/text";
 
-export function LoginForm({ restaurant, nextPath }: { restaurant: string; nextPath: string }) {
+export function LoginForm({
+  restaurant,
+  nextPath,
+  onSubmit,
+}: {
+  restaurant: string;
+  nextPath: string;
+  onSubmit?: (pin: string) => void;
+}) {
   const router = useRouter();
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
@@ -16,6 +24,10 @@ export function LoginForm({ restaurant, nextPath }: { restaurant: string; nextPa
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (sending) return;
+    if (onSubmit) {
+      onSubmit(pin);
+      return;
+    }
     setSending(true);
     setError("");
     try {

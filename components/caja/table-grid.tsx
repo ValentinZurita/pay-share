@@ -4,7 +4,8 @@ import { TableCard } from "@/components/caja/table-card";
 import { Banner } from "@/components/ui/banner";
 import { Button } from "@/components/ui/button";
 import { ScrollBody } from "@/components/ui/page-shell";
-import { MutedNote, PageTitle } from "@/components/ui/text";
+import { MutedNote } from "@/components/ui/text";
+import { formatMXN } from "@/lib/money";
 import type { Snapshot } from "@/lib/types";
 
 /**
@@ -31,21 +32,25 @@ export function TableGrid({
   onEditAmount: (table: Snapshot) => void;
   onRemoveTable: (table: Snapshot) => void;
 }) {
+  const cash = tables.reduce((sum, table) => sum + (table.bill?.remainingCents ?? 0), 0);
+
   return (
-    <ScrollBody
-      padding="none"
-      className="px-5 pt-[calc(24px+env(safe-area-inset-top))] pb-6 min-[900px]:px-1 min-[900px]:pt-1 min-[900px]:pb-6"
-    >
-      <div className="flex items-center justify-between gap-3">
-        <PageTitle>Mesas</PageTitle>
-        <Button variant="secondary" size="compact" disabled={sending} onClick={onAddTable}>
-          Nueva mesa
-        </Button>
+    <ScrollBody padding="none">
+      <div className="ps-large-title">
+        <div className="flex items-end justify-between gap-3">
+          <h1>Mesas</h1>
+          <Button variant="secondary" size="compact" className="mb-0.5 min-h-11" disabled={sending} onClick={onAddTable}>
+            Nueva mesa
+          </Button>
+        </div>
+        <p>
+          Restante en efectivo: <b className="num text-fg">{formatMXN(cash)}</b>
+        </p>
       </div>
       {error ? <Banner>{error}</Banner> : null}
       {liveError ? <Banner>{liveError}</Banner> : null}
       {tables.length === 0 ? <MutedNote>No hay mesas. Agrega la primera.</MutedNote> : null}
-      <div className="grid grid-cols-2 gap-2.5 min-[600px]:grid-cols-[repeat(auto-fill,minmax(170px,1fr))] min-[600px]:gap-3 min-[900px]:grid-cols-[repeat(auto-fill,minmax(185px,1fr))] min-[900px]:gap-3.5">
+      <div className="ps-tgrid">
         {tables.map((table) => (
           <TableCard
             key={table.table.id}

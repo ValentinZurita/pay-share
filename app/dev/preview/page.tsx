@@ -2,6 +2,15 @@
 
 import { Suspense, useState } from "react";
 import { notFound, useSearchParams } from "next/navigation";
+import { LoginForm } from "@/components/caja/login-form";
+import { TableDetail } from "@/components/caja/table-detail";
+import { TableGrid } from "@/components/caja/table-grid";
+import {
+  BillAmountSheet,
+  CloseTableSheet,
+  RemoveTableSheet,
+  ShareTableSheet,
+} from "@/components/caja/table-sheets";
 import { assess } from "@/components/mesa/mesa-app";
 import { PaymentForm } from "@/components/mesa/payment-form";
 import { PaymentMethodSheet, PhoneChargeSheet } from "@/components/mesa/payment-sheets";
@@ -210,6 +219,128 @@ function DonePreview() {
   );
 }
 
+const cajaTables: Snapshot[] = [
+  { table: { id: 4, name: "Mesa 4" }, bill: previewBill(184000, previewPayments) },
+  {
+    table: { id: 6, name: "Mesa 6" },
+    bill: previewBill(
+      92000,
+      [previewPay({ id: 8, name: "Ana", amountCents: 92000, tipCents: 0, status: "paid", paidAt: "2026-11-15T03:40:00.000Z" })],
+      8,
+    ),
+  },
+  { table: { id: 2, name: "Mesa 2" }, bill: null },
+  { table: { id: 1, name: "Mesa 1" }, bill: previewBill(50000, [], 3) },
+];
+
+function CajaGridPreview({
+  sheet,
+}: {
+  sheet: null | "open" | "edit" | "share" | "remove" | "close";
+}) {
+  const mesa4 = cajaTables[0];
+  const openCount = cajaTables.filter((table) => table.bill).length;
+  return (
+    <DinerShell>
+      <BrandBar subtitle={cajaSubtitle("Casa Nopal")} chip={`${openCount} abiertas`} />
+      <TableGrid
+        tables={cajaTables}
+        selectedId={sheet === "open" || sheet === "remove" ? 2 : sheet ? 4 : null}
+        sending={false}
+        error=""
+        liveError={null}
+        onAddTable={() => undefined}
+        onSelectTable={() => undefined}
+        onEditAmount={() => undefined}
+        onRemoveTable={() => undefined}
+      />
+      {sheet === "open" ? (
+        <BillAmountSheet
+          mode="open"
+          tableName="Mesa 2"
+          total=""
+          error=""
+          sending={false}
+          onTotalChange={() => undefined}
+          onSubmit={(event) => event.preventDefault()}
+          onClose={() => undefined}
+        />
+      ) : null}
+      {sheet === "edit" && mesa4.bill ? (
+        <BillAmountSheet
+          mode="edit"
+          tableName="Mesa 4"
+          total="1840.00"
+          error=""
+          sending={false}
+          onTotalChange={() => undefined}
+          onSubmit={(event) => event.preventDefault()}
+          onClose={() => undefined}
+        />
+      ) : null}
+      {sheet === "share" ? (
+        <ShareTableSheet
+          tableName="Mesa 4"
+          mesaUrl="https://payshare.example/mesa/4"
+          copied={false}
+          onShareLink={() => undefined}
+          onClose={() => undefined}
+        />
+      ) : null}
+      {sheet === "remove" ? (
+        <RemoveTableSheet
+          tableName="Mesa 2"
+          hasOpenBill={false}
+          error=""
+          sending={false}
+          onConfirm={() => undefined}
+          onClose={() => undefined}
+        />
+      ) : null}
+      {sheet === "close" && mesa4.bill ? (
+        <CloseTableSheet
+          tableName="Mesa 4"
+          copy={`Confirma que ya cobraste ${formatMXN(mesa4.bill.remainingCents)} en efectivo. La mesa quedará libre.`}
+          sending={false}
+          onConfirm={() => undefined}
+          onClose={() => undefined}
+        />
+      ) : null}
+    </DinerShell>
+  );
+}
+
+function CajaDetailPreview() {
+  const bill = cajaTables[0].bill;
+  if (!bill) return null;
+  return (
+    <DinerShell>
+      <TableDetail
+        table={cajaTables[0].table}
+        bill={bill}
+        freshIds={new Set()}
+        copied={false}
+        error=""
+        onBack={() => undefined}
+        onShowShare={() => undefined}
+        onShareLink={() => undefined}
+        onRequestClose={() => undefined}
+      />
+    </DinerShell>
+  );
+}
+
+function CajaLoginPreview() {
+  return (
+    <DinerShell>
+      <BrandBar subtitle={cajaSubtitle("Casa Nopal")} />
+      <ScrollBody className="justify-center">
+        <LoginForm restaurant="Casa Nopal" nextPath="/caja" onSubmit={() => undefined} />
+      </ScrollBody>
+    </DinerShell>
+  );
+}
+
 function NoBillPreview() {
   return (
     <DinerShell>
@@ -240,6 +371,14 @@ function PreviewRouter() {
   if (vista === "espera-celular") return <WaitPreview kind="pn" />;
   if (vista === "pagado") return <DonePreview />;
   if (vista === "sin-cuenta") return <NoBillPreview />;
+  if (vista === "caja-login") return <CajaLoginPreview />;
+  if (vista === "caja-mesas") return <CajaGridPreview sheet={null} />;
+  if (vista === "caja-detalle") return <CajaDetailPreview />;
+  if (vista === "caja-abrir") return <CajaGridPreview sheet="open" />;
+  if (vista === "caja-editar") return <CajaGridPreview sheet="edit" />;
+  if (vista === "caja-compartir") return <CajaGridPreview sheet="share" />;
+  if (vista === "caja-quitar") return <CajaGridPreview sheet="remove" />;
+  if (vista === "caja-cerrar") return <CajaGridPreview sheet="close" />;
   return <PreviewGallery />;
 }
 

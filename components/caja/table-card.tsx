@@ -2,7 +2,6 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { IconMore } from "@/components/ui/icons";
 import { cn } from "@/lib/cn";
@@ -27,19 +26,13 @@ export function TableCard({
 }) {
   const open = table.bill;
   const covered = open ? open.remainingCents === 0 : false;
+  const paid = open && open.totalCents > 0 ? Math.min(100, (open.paidCents / open.totalCents) * 100) : 0;
 
   return (
-    <Card
-      selected={selected}
-      className="relative min-h-[118px] w-full p-0 transition-shadow duration-150 ease-(--ease) hover:shadow-card-hover"
-    >
-      <button
-        type="button"
-        onClick={onSelect}
-        className="flex min-h-[118px] w-full flex-col justify-between gap-2.5 p-3.5 text-left"
-      >
-        <span className="flex flex-col items-start gap-1.5 pr-7">
-          <b className="text-[15px] font-semibold tracking-[-0.01em] text-ink">{table.table.name}</b>
+    <div className={cn("ps-tcard", !open && "is-free", selected && "is-selected")}>
+      <button type="button" className="ps-tcard-hit" onClick={onSelect}>
+        <span className="ps-tcard-top">
+          <b>{table.table.name}</b>
           {!open ? (
             <Badge variant="neutral">Libre</Badge>
           ) : covered ? (
@@ -49,29 +42,38 @@ export function TableCard({
           )}
         </span>
         {open ? (
-          <span>
-            <span className="block text-[20px] font-bold leading-[1.15] tracking-[-0.03em] text-ink num">
-              {formatMXN(open.remainingCents)}
+          <>
+            <span className="ps-tcard-amt">{covered ? "Lista" : formatMXN(open.remainingCents)}</span>
+            <small>{covered ? "para cerrar" : `restante de ${formatMXN(open.totalCents)}`}</small>
+            <span className="ps-tmini" aria-hidden="true">
+              <i style={{ width: `${paid}%` }} />
             </span>
-            <small className="text-[12.5px] text-muted">restante de {formatMXN(open.totalCents)}</small>
-          </span>
-        ) : null}
+          </>
+        ) : (
+          <>
+            <span className="ps-tplus" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </span>
+            <small>Abrir cuenta</small>
+          </>
+        )}
       </button>
 
       <DropdownMenu
         label={`Opciones de ${table.table.name}`}
         positioned={false}
-        className="absolute top-1.5 right-1.5 z-2"
+        className="ps-tcard-menu"
         menuClassName="top-[calc(100%+2px)]"
         trigger={({ open: menuOpen, toggle }) => (
           <Button
             variant="ghost"
-            size="icon-sm"
+            size="icon"
             aria-label={`Opciones de ${table.table.name}`}
             aria-expanded={menuOpen}
             aria-haspopup="menu"
             onClick={toggle}
-            className={cn(menuOpen && "bg-bg text-ink")}
           >
             <IconMore />
           </Button>
@@ -81,6 +83,6 @@ export function TableCard({
           { label: "Eliminar mesa", onSelect: onRemove },
         ]}
       />
-    </Card>
+    </div>
   );
 }
