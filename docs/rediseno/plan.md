@@ -6,10 +6,10 @@ Rama: `rediseno-payshare`. Stack: Next.js 16 (leer `node_modules/next/dist/docs/
 
 ## Requisitos
 
-- **RF-1 Tema.** Tres modos: Claro (por defecto), Auto (sigue día/noche del dispositivo), Oscuro. Se recuerda en `localStorage` (`ps-theme`). Sin parpadeo al cargar.
+- **RF-1 Tema.** Siempre sigue al sistema (`prefers-color-scheme`). Tokens claros en `:root`; oscuros en `@media (prefers-color-scheme: dark) { :root }`. `color-scheme: light dark`. Sin selector, sin `localStorage` y sin clases en `<html>`.
 - **RF-2 Marca.** El encabezado dice "PayShare" con el logo (círculo partido). Comensal: subtítulo "Paga con CoDi" + chip "Mesa N". Caja: subtítulo "Caja · {restaurante}". El nombre del restaurante sigue en el ticket.
-- **RF-3 Ticket.** La cuenta se ve como ticket: muescas laterales, perforación punteada, talón, borde inferior festoneado, degradado leve. Muestra restaurante, mesa, total, pagos, renglón "por pagar" del comensal y restante.
-- **RF-4 Comensal.** Formulario con tres secciones de mismo patrón (etiqueta afuera, tarjeta abajo): nombre (campo claro con etiqueta "Tu nombre (opcional)"), monto, propina. Hojas de método y celular, vistas QR / celular / pagado, según la referencia.
+- **RF-3 Ticket.** La cuenta se ve como ticket: muescas laterales, perforación punteada, talón del mismo papel que el cuerpo, borde inferior festoneado. El único color extra es un tinte aqua translúcido en la cabecera, que se apaga antes de la perforación. Sin `backdrop-filter` dentro del ticket. Muestra restaurante, mesa, total, pagos (solo si hay), renglón "por pagar" del comensal y restante. El talón no repite el total.
+- **RF-4 Comensal.** Formulario con tres secciones de mismo patrón (etiqueta afuera, tarjeta abajo): nombre (campo claro con etiqueta "Tu nombre (opcional)", sin placeholder), monto, propina. Hojas de método y celular, vistas QR / celular / pagado, según la referencia.
 - **RF-5 Caja.** Cuadrícula de mesas, detalle de mesa, hojas de abrir / editar / compartir / quitar / cerrar, y login con el nuevo estilo.
 - **RF-6 Superficies.** Campos, tarjetas, barras y hojas con vidrio esmerilado suave (degradado leve + blur + filo de luz), como la referencia.
 - **RNF-1 Sin regresiones.** `pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm build` salen con 0. Ninguna ruta `app/api/**` ni `lib/**` existente cambia de comportamiento.
@@ -27,21 +27,22 @@ Rama: `rediseno-payshare`. Stack: Next.js 16 (leer `node_modules/next/dist/docs/
 
 **Anti-Goals**
 - Dependencias nuevas (ni UI kits, ni librerías de animación, ni jsdom / testing-library, ni next-themes).
-- `tailwind.config.*`. CSS-in-JS. Proveedor de contexto para el tema (basta clase en `<html>` + script inline).
-- `backdrop-filter` dentro del ticket (su padre usa `filter: drop-shadow`; usar degradados opacos).
+- `tailwind.config.*`. CSS-in-JS. Proveedor de contexto para el tema.
+- `backdrop-filter` dentro del ticket (su padre usa `filter: drop-shadow`). El talón no lleva degradado; el tinte, si existe, es solo el de la cabecera.
+- Selector de tema, preferencia guardada, clases de tema en `<html>` y script de arranque. El tema sigue a `prefers-color-scheme`.
 - Refactors no pedidos, renombrar archivos fuera de lo listado, tocar `tests/**` existentes.
 
 ## Criterios de aceptación
 
-- **CA-1 Tema por defecto.** Sin valor guardado → `<html>` con clase `t-light`. Valor guardado inválido (`"x"`) → `t-light`.
-- **CA-2 Tema auto.** `ps-theme=auto` + sistema en oscuro → tokens oscuros; sistema en claro → tokens claros. `ps-theme=dark` → oscuro siempre. `localStorage` bloqueado → no truena, queda claro.
+- **CA-1 Tema claro.** Con el sistema en claro, los tokens salen de `:root`. `<html>` no lleva clase de tema ni script que lea `localStorage`.
+- **CA-2 Tema oscuro.** Con el sistema en oscuro, aplican los tokens de `@media (prefers-color-scheme: dark) { :root }`. No hay modo forzado ni preferencia guardada.
 - **CA-3 Marca.** `/mesa/[id]` muestra "PayShare", "Paga con CoDi", "Mesa N". Caja muestra "PayShare" y "Caja · Casa Nopal"; sin nombre de restaurante configurado → solo "Caja".
-- **CA-4 Ticket.** Cuenta $1,840 con pagos → renglones de pagos + restante correcto. Sin pagos → sin renglones, restante = total. Cubierta → restante $0.00 y texto de la referencia ("No falta nada por pagar.").
+- **CA-4 Ticket.** Cuenta $1,840 con pagos → renglones de pagos + restante correcto. Sin pagos → sin sección de pagos (ni encabezado ni texto vacío) y restante = total. Cubierta → restante $0.00 y texto de la referencia ("No falta nada por pagar."). El talón muestra la etiqueta y el monto grande, sin la línea "de {total}".
 - **CA-5 Renglón propio.** Nombre "Ana" + monto válido → "Ana · por pagar" con ese monto y el restante proyectado. Monto 0 o mayor al restante → no aparece renglón pendiente.
-- **CA-6 Nombre.** Campo visible con etiqueta, placeholder "Para que la mesa vea quién pagó", máx. 40 caracteres, va primero.
+- **CA-6 Nombre.** Campo visible con etiqueta "Tu nombre (opcional)", sin placeholder, máx. 40 caracteres, va primero.
 - **CA-7 Compuertas.** `pnpm test && pnpm typecheck && pnpm lint && pnpm build` → exit 0; los 30 tests previos siguen iguales.
 - **CA-8 A11y.** Tab recorre controles con anillo visible; con reduced-motion no hay animaciones de entrada; Esc cierra hojas.
-- **CA-9 Vista previa.** `/dev/preview` (solo desarrollo; en producción da 404) muestra las pantallas con datos fijos, sin red, y cambia con el tema.
+- **CA-9 Vista previa.** `/dev/preview` (solo desarrollo; en producción da 404) muestra las pantallas con datos fijos, sin red, incluido un ticket sin pagos, y sigue el tema del sistema.
 
 ## Slices (en orden, uno a la vez)
 
@@ -50,11 +51,9 @@ Todos: modelo **Grok 4.7 high** (implementación ágil de UI). No hacer commit; 
 ### S1 — Fundamentos: tokens, tema, marca
 - Objetivo: base visual y de tema lista; la app ya se ve con la paleta nueva.
 - Archivos: `app/globals.css`, `app/layout.tsx`, `lib/theme.ts` (nuevo), `tests/theme.test.ts` (nuevo), `components/ui/theme-menu.tsx` (nuevo), `components/ui/brand-bar.tsx` (nuevo, reemplaza a `shop-bar.tsx`; borrar `shop-bar.tsx` y actualizar sus 3 usos y el barrel), `components/ui/icons.tsx`, `components/ui/index.ts`, `app/dev/preview/page.tsx` (nuevo, esqueleto).
-- Detalle:
-  - Tokens claros en `:root`; oscuros en `:root.t-dark` y en `@media (prefers-color-scheme: dark){ :root.t-auto }`. `color-scheme` acorde. Mantener el puente `@theme inline`.
-  - `lib/theme.ts`: funciones puras `parseTheme(valor desconocido) → 'light'|'auto'|'dark'` y `themeClass(tema)`. El script inline de `layout.tsx` aplica la clase antes de pintar, dentro de try/catch.
-  - `ThemeMenu`: botón de icono en la barra que abre el `DropdownMenu` existente con Claro / Auto / Oscuro y marca el activo.
-  - `BrandBar`: logo + "PayShare" + subtítulo + ranura derecha (chip / ThemeMenu). Barra de vidrio.
+- Detalle (el selector manual de este slice lo retira S6):
+  - Tokens claros en `:root` y puente `@theme inline`. Desde S6, los oscuros viven en `@media (prefers-color-scheme: dark) { :root }`.
+  - `BrandBar`: logo + "PayShare" + subtítulo + ranura derecha (chip). Barra de vidrio.
   - Fuente: pila del sistema (SF primero) con Inter de respaldo; mono con Geist Mono vía `next/font/google`.
   - Metadata y fallbacks "Pay Share" → "PayShare".
 - Tests: `tests/theme.test.ts` (válidos, inválido, null, objeto raro → 'light'; clase por tema).
@@ -87,27 +86,33 @@ Todos: modelo **Grok 4.7 high** (implementación ágil de UI). No hacer commit; 
 - Tests: compuertas CA-7 + vista previa.
 - Cubre: RF-5, RNF-1, CA-3, CA-7.
 
+### S6 — Limpieza visual
+- Objetivo: pantalla más limpia y ticket consistente. El tema sigue al sistema; no hay selector.
+- Hecho: talón y dientes del mismo papel; tinte aqua solo en la cabecera, se apaga antes de la perforación; sin pagos no hay sección ni texto vacío; el talón no repite "de {total}"; el nombre no tiene placeholder; borrados el menú de tema, el script de arranque y la preferencia guardada.
+- Cubre: RF-1, RF-3, RF-4, CA-1, CA-2, CA-4, CA-6, CA-9.
+
 ## Trazabilidad
 
 | Req | Slice |
 |---|---|
-| RF-1 | S1 |
+| RF-1 | S1, S6 |
 | RF-2 | S1, S5 |
-| RF-3 | S3 |
-| RF-4 | S4 |
+| RF-3 | S3, S6 |
+| RF-4 | S4, S6 |
 | RF-5 | S5 |
 | RF-6 | S2 |
 | RNF-1 | todos (compuertas), S5 |
 | RNF-2 | S2, S4, S5 |
 | RNF-3 | S1, S2 |
 | RNF-4 | S4, S5 |
-| CA-1, CA-2 | S1 |
+| CA-1, CA-2 | S1, S6 |
 | CA-3 | S1, S5 |
-| CA-4, CA-5 | S3 |
-| CA-6 | S4 |
+| CA-4 | S3, S6 |
+| CA-5 | S3 |
+| CA-6 | S4, S6 |
 | CA-7 | todos |
 | CA-8 | S2 |
-| CA-9 | S1 (y se amplía en S2–S5) |
+| CA-9 | S1 (y se amplía en S2–S6) |
 
 ## Reglas para el agente que implementa
 

@@ -50,7 +50,6 @@ export function PaymentForm({
           id="payer-name"
           maxLength={40}
           autoComplete="given-name"
-          placeholder="Para que la mesa vea quién pagó"
           value={name}
           onChange={(event) => onNameChange(event.target.value.slice(0, 40))}
           textSize="md"

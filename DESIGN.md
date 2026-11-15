@@ -3,7 +3,7 @@
 > Complemento de `PLAN.md`. Todo agente que toque interfaz (tareas F2.5–F2.8, F4.1–F4.4) lee este documento antes de escribir código.
 > Referencia visual navegable: `design/prototipo-ui.html` (abrir en el navegador).
 >
-> **AVISO (2026-11-15): el rediseño PayShare está en `docs/rediseno/referencia.html`.** En lo visual manda esa referencia; los tokens vigentes están en `app/globals.css`. La cuenta es un ticket (no el anillo). Hay tres temas: Claro, Auto y Oscuro (`localStorage` `ps-theme`, clase `t-light` / `t-auto` / `t-dark` en `<html>`). Siguen vigentes los textos (§6), las reglas móviles (§7) y la accesibilidad (§8). Donde §2, §3 o §9 hablen del anillo, de un solo tema claro, o prohíban degradados, manda este aviso.
+> **AVISO (2026-11-15): el rediseño PayShare está en `docs/rediseno/referencia.html`.** En lo visual manda esa referencia, salvo el talón del ticket: aquí el papel es uniforme y el tinte aqua vive solo en la cabecera. Los tokens vigentes están en `app/globals.css`. La cuenta es un ticket (no el anillo). El tema sigue siempre al sistema (`prefers-color-scheme`); no hay selector ni `localStorage`. Siguen vigentes los textos (§6), las reglas móviles (§7) y la accesibilidad (§8), salvo el placeholder del nombre y el texto de pagos vacíos, que no se muestran. Donde §2, §3 o §9 hablen del anillo, de un solo tema claro, de un selector de tema, o prohíban degradados, manda este aviso.
 
 ---
 
@@ -28,15 +28,14 @@ Qué transmite seguridad (y hay que conservar): el nombre del restaurante y de l
 
 ### Color
 
-Tres temas, recordados en `localStorage` con la clave `ps-theme`:
+El tema sigue al sistema, sin selector y sin recuerdo en `localStorage`:
 
-- **Claro** (por defecto, clase `t-light`): tokens en `:root`.
-- **Auto** (clase `t-auto`): sigue el día y la noche del dispositivo (`prefers-color-scheme`).
-- **Oscuro** (clase `t-dark`): tokens oscuros siempre.
+- **Claro:** tokens en `:root`, con `color-scheme: light dark`.
+- **Oscuro:** los mismos nombres, dentro de `@media (prefers-color-scheme: dark) { :root }`.
 
 El QR de CoDi no sigue el tema: módulos `--qr-ink` (`#111113`) sobre placa `--qr-paper` (`#ffffff`), también en oscuro.
 
-Tokens nuevos del rediseño, además de los nombres que ya usaba la app (`--bg`, `--surface`, `--ink`, `--muted`, `--line`, `--danger`): `--fg`, `--fg2`, `--fg3`, `--screen`, `--card`, `--paper`, `--sep`, `--fill`, `--glass`, `--accent`, `--ok`, `--warn`, `--btn`, `--on-btn`, `--tshadow`, `--qr-paper`, `--qr-ink`. Los valores claros viven en `:root`; los oscuros se repiten en `:root.t-dark` y en `@media (prefers-color-scheme: dark) { :root.t-auto }`. Ningún componente usa colores literales.
+Tokens nuevos del rediseño, además de los nombres que ya usaba la app (`--bg`, `--surface`, `--ink`, `--muted`, `--line`, `--danger`): `--fg`, `--fg2`, `--fg3`, `--screen`, `--card`, `--paper`, `--sep`, `--fill`, `--glass`, `--accent`, `--ok`, `--warn`, `--btn`, `--on-btn`, `--tshadow`, `--qr-paper`, `--qr-ink`, `--ticket-wash`. Los valores claros viven en `:root`; los oscuros, en `@media (prefers-color-scheme: dark) { :root }`. Ningún componente usa colores literales.
 
 Los valores numéricos no se copian aquí: la fuente es `app/globals.css`, expuesta a Tailwind 4 con `@theme inline`. Contraste mínimo AA (4.5:1) para el texto. `--danger` solo en errores. La acción principal usa `--btn` / `--on-btn`. La propina usa `--warn`.
 
@@ -65,7 +64,7 @@ Ningún campo de texto por debajo de 16 px (evita el zoom automático de iOS).
 
 - Escala de espacios: 4 · 8 · 12 · 16 · 20 · 24 · 32. Margen lateral de pantalla: 20 px (16 px si el ancho es < 380 px).
 - Formas muy redondas: botones, chips y campos en píldora (999); tarjetas y filas 20–28; bloque selva con las esquinas inferiores a 34; hojas inferiores 32 arriba.
-- Vidrio (degradado leve + `backdrop-filter` + filo de luz) en lo que flota: encabezado, campos, barras y hojas. El ticket no lleva `backdrop-filter`: su padre usa `filter: drop-shadow` y el papel es un degradado opaco (`--paper`, `--stub-a`, `--stub-b`). El velo de las hojas es `--scrim`.
+- Vidrio (degradado leve + `backdrop-filter` + filo de luz) en lo que flota: encabezado, campos, barras y hojas. El ticket no lleva `backdrop-filter`: su padre usa `filter: drop-shadow`. Cuerpo, talón y dientes comparten `--paper`. Solo la cabecera lleva un tinte aqua translúcido (`--ticket-wash`) que se apaga antes de la perforación. El velo de las hojas es `--scrim`.
 - Iconos: de trazo (2 px), 22 px, color heredado. Usar los menos posibles: atrás, candado, palomita, teléfono, QR, flecha. Sin emojis.
 
 ### Movimiento
@@ -83,7 +82,7 @@ Ningún campo de texto por debajo de 16 px (evita el zoom automático de iOS).
 
 Viven en `components/ui/`. Son pocos a propósito; no crear variantes que no se usen.
 
-La cuenta, en comensal y en caja, es el **Ticket**: muescas laterales, perforación, talón con degradado y brillo, borde inferior festoneado. Muestra restaurante, mesa, total, pagos y restante. En caja el talón dice "Restante en efectivo". El anillo (`MesaRing`) ya no se usa.
+La cuenta, en comensal y en caja, es el **Ticket**: muescas laterales, perforación, talón del mismo papel y borde inferior festoneado. Muestra restaurante, mesa y total. La lista de pagos solo aparece si hay pagos. El talón lleva la etiqueta y el monto grande, sin repetir el total. En caja el talón dice "Restante en efectivo". El anillo (`MesaRing`) ya no se usa.
 
 | Componente | Especificación |
 |---|---|
@@ -179,7 +178,7 @@ Título "Abrir cuenta · Mesa 4", `BigAmount` "Total de la cuenta" con el foco p
 - **Encabezado:** botón redondo de volver + "Mesa 4" y "Cuenta 12".
 - **Hero:** "Por cobrar en efectivo" → monto grande (o "Cubierta") → "Total de la cuenta $500.00", con el `MesaRing` a la derecha.
 - **Resumen:** tarjeta blanca con dos filas: Pagado por transferencia / **Propinas, aparte** (monto en `--tip-ink`).
-- **Pagos:** lista, lo más nuevo arriba. Cada fila: círculo lima con palomita (pagado) o gris con indicador (esperando), monto de la parte, debajo "+ $30.00 de propina" o "Esperando el pago", y la hora a la derecha. Vacía: "Aún no entra ningún pago. Aparecen aquí solos."
+- **Pagos:** si hay pagos, lista con lo más nuevo arriba. Cada fila: círculo lima con palomita (pagado) o gris con indicador (esperando), monto de la parte, debajo "+ $30.00 de propina" o "Esperando el pago", y la hora a la derecha. Sin pagos, la sección no se muestra.
 - ActionBar: `Cerrar mesa` como botón **oscuro** (no lima: la lima es para cobrar, no para terminar).
 
 ### 5.4 Cerrar mesa (hoja inferior)
@@ -206,6 +205,7 @@ Español de México, de tú, frases cortas. Verbos concretos en los botones. Sin
 | Tarjeta principal (comensal) | Dos renglones con etiquetas paralelas: **Total** (monto mediano) y **Restante** (monto grande) |
 | Tarjeta principal (caja) | **Total** y **Restante en efectivo** |
 | Vocabulario | Siempre "Total" y "Restante". No usar "Falta por pagar" ni "Por cobrar" en la tarjeta principal |
+| Nombre del comensal | Tu nombre (opcional). El campo no lleva texto de ejemplo. Máximo 40 caracteres. |
 | Campo de monto | ¿Cuánto pagas tú? |
 | Atajo de monto | Pagar todo el restante |
 | Botón principal | Pagar $330.00 |
@@ -252,7 +252,7 @@ No afirmar nada fiscal sobre las propinas en la interfaz; solo "aparte".
 
 ## 9. Lo que no entra
 
-Menús o pestañas de navegación · pie de página · logotipos de terceros o insignias de "pago seguro" inventadas · ilustraciones o fotos decorativas · colores literales fuera de los tokens · `backdrop-filter` dentro del ticket · avisos emergentes (toasts) · selector de idioma · onboarding o tutoriales · animaciones en bucle · textos de marketing. El vidrio, los degradados opacos del ticket, la barra de avance de la mesa y los tres temas sí entran.
+Menús o pestañas de navegación · pie de página · logotipos de terceros o insignias de "pago seguro" inventadas · ilustraciones o fotos decorativas · colores literales fuera de los tokens · `backdrop-filter` dentro del ticket · degradado en el talón del ticket · avisos emergentes (toasts) · selector de idioma · selector de tema · onboarding o tutoriales · animaciones en bucle · textos de marketing. El vidrio, el tinte de la cabecera del ticket, la barra de avance de la mesa y el tema automático (claro u oscuro según el sistema) sí entran.
 
 ---
 

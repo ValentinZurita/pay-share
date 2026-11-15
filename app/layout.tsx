@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
 import { AppFrame } from "@/components/ui/app-frame";
-import { ThemeBoot } from "@/components/ui/theme-boot";
 import "./globals.css";
 
 const inter = Inter({
@@ -30,13 +29,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="es-MX"
-      className={`${inter.variable} ${geistMono.variable} t-light h-full`}
-      suppressHydrationWarning
-    >
+    <html lang="es-MX" className={`${inter.variable} ${geistMono.variable} h-full`}>
       <body className="min-h-dvh antialiased">
-        <ThemeBoot />
         <AppFrame />
         {children}
       </body>

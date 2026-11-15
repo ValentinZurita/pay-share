@@ -72,6 +72,29 @@ function previewBill(totalCents: number, payments: SnapshotPayment[], id = 12): 
 
 const PREVIEW_QR = "codi-preview-payshare";
 
+function EmptyTicketPreview() {
+  return (
+    <DinerShell>
+      <BrandBar subtitle="Paga con CoDi" chip="Mesa 6" />
+      <ScrollBody>
+        <Ticket
+          restaurant="Casa Nopal"
+          tableName="Mesa 6"
+          createdAt={PREVIEW_OPENED_AT}
+          bill={previewBill(184000, [], 13)}
+        />
+        <Ticket
+          restaurant="Casa Nopal"
+          tableName="Mesa 6"
+          createdAt={PREVIEW_OPENED_AT}
+          staff
+          bill={previewBill(184000, [], 14)}
+        />
+      </ScrollBody>
+    </DinerShell>
+  );
+}
+
 function TicketPreview() {
   return (
     <DinerShell>
@@ -364,6 +387,7 @@ export default function PreviewPage() {
 function PreviewRouter() {
   const vista = useSearchParams().get("vista") ?? "primitivos";
   if (vista === "ticket") return <TicketPreview />;
+  if (vista === "ticket-sin-pagos") return <EmptyTicketPreview />;
   if (vista === "pago") return <PayPreview initialSheet={null} />;
   if (vista === "metodo") return <PayPreview initialSheet="method" />;
   if (vista === "celular") return <PayPreview initialSheet="phone" />;
@@ -384,7 +408,6 @@ function PreviewRouter() {
 
 function PreviewGallery() {
   const [sheet, setSheet] = useState(false);
-  const [menuChoice, setMenuChoice] = useState("Claro");
 
   return (
     <DinerShell>
@@ -424,8 +447,8 @@ function PreviewGallery() {
         </section>
 
         <section className="flex flex-col gap-3" aria-label="Marca">
-          <BrandBar subtitle={cajaSubtitle("Casa Nopal")} chip="2 abiertas" showTheme={false} />
-          <BrandBar subtitle={cajaSubtitle(null)} showTheme={false} />
+          <BrandBar subtitle={cajaSubtitle("Casa Nopal")} chip="2 abiertas" />
+          <BrandBar subtitle={cajaSubtitle(null)} />
         </section>
 
         <section className="flex flex-col gap-2" aria-label="Botones">
@@ -451,7 +474,7 @@ function PreviewGallery() {
 
         <section className="flex flex-col gap-3" aria-label="Campos">
           <Field label="Tu nombre" hint="(opcional)" htmlFor="preview-name">
-            <TextInput id="preview-name" placeholder="Para que la mesa vea quién pagó" autoComplete="given-name" />
+            <TextInput id="preview-name" autoComplete="given-name" maxLength={40} />
           </Field>
           <Field label="Monto" htmlFor="preview-amount" error="Solo faltan $200.00.">
             <CurrencyInput id="preview-amount" invalid defaultValue="300" />
@@ -508,14 +531,13 @@ function PreviewGallery() {
           <LabelText>Menú</LabelText>
           <DropdownMenu
             label="Ejemplo de menú"
-            items={["Claro", "Auto", "Oscuro"].map((label) => ({
-              label,
-              selected: label === menuChoice,
-              onSelect: () => setMenuChoice(label),
-            }))}
+            items={[
+              { label: "Ver código", onSelect: () => undefined },
+              { label: "Enviar enlace", onSelect: () => undefined },
+            ]}
             trigger={({ open, toggle }) => (
               <Button variant="surface" size="compact" fullWidth={false} aria-expanded={open} onClick={toggle}>
-                {menuChoice}
+                Opciones
               </Button>
             )}
           />

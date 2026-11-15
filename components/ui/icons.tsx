@@ -76,15 +76,6 @@ export function IconLogo({ className, ...props }: IconProps) {
   );
 }
 
-export function IconTheme(props: IconProps) {
-  return (
-    <IconBase sizeClassName="h-[18px] w-[18px]" {...props}>
-      <circle cx="12" cy="12" r="8" />
-      <path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor" stroke="none" />
-    </IconBase>
-  );
-}
-
 export function IconLock(props: IconProps) {
   return (
     <IconBase sizeClassName="h-4 w-4" {...props}>

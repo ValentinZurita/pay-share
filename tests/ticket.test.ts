@@ -60,7 +60,6 @@ describe("buildTicket CA-4", () => {
     expect(ticket.rows[0]?.detail).toBe("+ propina $46.00 · 21:12");
     expect(ticket.rows[2]?.detail).toBe("sin propina · 21:19");
     expect(ticket.pending).toBeNull();
-    expect(ticket.empty).toBeNull();
     expect(ticket.sectionLabel).toBe("Ya pagaron");
     expect(ticket.remainingCents).toBe(62000);
     expect(ticket.projectedCents).toBe(62000);
@@ -71,12 +70,13 @@ describe("buildTicket CA-4", () => {
     expect(ticket.bar).toEqual({ paid: 122000, pending: 0, rest: 62000 });
   });
 
-  it("sin pagos: no hay renglones y el restante es el total", () => {
+  it("sin pagos: no hay sección ni texto vacío y el restante es el total", () => {
     const ticket = buildTicket(source({ payments: [], billId: 13, totalCents: 184000 }));
     expect(ticket.rows).toEqual([]);
     expect(ticket.pending).toBeNull();
-    expect(ticket.empty).toBe("Aún no entra ningún pago. Aparecen aquí solos.");
-    expect(ticket.sectionLabel).toBe("Pagos");
+    expect(ticket.sectionLabel).toBeNull();
+    expect(ticket).not.toHaveProperty("empty");
+    expect(JSON.stringify(ticket)).not.toMatch(/Aún no entra|ningún pago|Aparecen aquí/);
     expect(ticket.remainingCents).toBe(184000);
     expect(ticket.big).toBe("$1,840.00");
     expect(ticket.percent).toBe(0);

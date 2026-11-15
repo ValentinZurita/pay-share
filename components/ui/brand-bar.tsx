@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { IconLogo } from "@/components/ui/icons";
-import { ThemeMenu } from "@/components/ui/theme-menu";
 import { cn } from "@/lib/cn";
 
 export function cajaSubtitle(restaurant: string | null | undefined): string {
@@ -9,7 +8,7 @@ export function cajaSubtitle(restaurant: string | null | undefined): string {
 }
 
 /**
- * Barra de marca: logo, PayShare, subtítulo y ranura derecha (chip y tema).
+ * Barra de marca: logo, PayShare, subtítulo y ranura derecha (chip).
  */
 export function BrandBar({
   title = "PayShare",
@@ -17,7 +16,6 @@ export function BrandBar({
   chip,
   leading,
   end,
-  showTheme = true,
   className,
 }: {
   title?: string;
@@ -25,7 +23,6 @@ export function BrandBar({
   chip?: ReactNode;
   leading?: ReactNode;
   end?: ReactNode;
-  showTheme?: boolean;
   className?: string;
 }) {
   return (
@@ -42,7 +39,6 @@ export function BrandBar({
       <span className="ps-nav-end">
         {chip ? <span className="ps-chip">{chip}</span> : null}
         {end}
-        {showTheme ? <ThemeMenu /> : null}
       </span>
     </header>
   );

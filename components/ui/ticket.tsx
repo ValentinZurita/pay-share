@@ -79,19 +79,18 @@ export function Ticket({
           <span>Total de la cuenta</span>
           <span className="ps-ticket-amt">{model.total}</span>
         </div>
-        <div className="ps-ticket-rule" aria-hidden="true" />
-        <span className="ps-ticket-label">{model.sectionLabel}</span>
-        {model.empty ? (
-          <p className="ps-ticket-empty">{model.empty}</p>
-        ) : (
-          <ul className="ps-ticket-list">{lines}</ul>
-        )}
+        {lines.length > 0 ? (
+          <>
+            <div className="ps-ticket-rule" aria-hidden="true" />
+            <span className="ps-ticket-label">{model.sectionLabel}</span>
+            <ul className="ps-ticket-list">{lines}</ul>
+          </>
+        ) : null}
       </div>
       <div className="ps-ticket-stub">
         <div className="ps-ticket-rest">
           <span className="ps-ticket-rest-label">
             <span className="ps-ticket-label">{model.restLabel}</span>
-            <small>de {model.total}</small>
           </span>
           {model.covered ? (
             <span className="ps-ticket-big ps-ticket-ok">

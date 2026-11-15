@@ -2,14 +2,11 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { IconCheck } from "@/components/ui/icons";
 import { cn } from "@/lib/cn";
 
 export interface DropdownMenuItem {
   label: string;
   onSelect: () => void;
-  /** Cuando está definido, la opción es un menuitemradio. */
-  selected?: boolean;
 }
 
 type MenuBox = { top: number; right: number };
@@ -36,7 +33,6 @@ export function DropdownMenu({
   const [box, setBox] = useState<MenuBox | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const selectable = items.some((item) => item.selected !== undefined);
 
   function toggle() {
     setBox(null);
@@ -93,20 +89,15 @@ export function DropdownMenu({
             {items.map((item) => (
               <button
                 key={item.label}
-                role={selectable ? "menuitemradio" : "menuitem"}
+                role="menuitem"
                 type="button"
-                aria-checked={selectable ? item.selected === true : undefined}
                 onClick={() => {
                   setOpen(false);
                   item.onSelect();
                 }}
-                className={cn(
-                  "flex min-h-11 items-center justify-between gap-3 rounded-xl px-3 text-left text-[15px] font-medium text-fg",
-                  item.selected ? "bg-accent-tint text-accent" : "bg-transparent hover:bg-fill",
-                )}
+                className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-transparent px-3 text-left text-[15px] font-medium text-fg hover:bg-fill"
               >
                 <span>{item.label}</span>
-                {item.selected ? <IconCheck className="shrink-0" /> : null}
               </button>
             ))}
           </div>,

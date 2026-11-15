@@ -19,11 +19,9 @@ export {
   IconPhone,
   IconQr,
   IconReceipt,
-  IconTheme,
 } from "./icons";
 export { CurrencyInput, Field, TextInput, type TextInputProps } from "./input";
 export { CenteredCardShell, DinerShell, FooterBar, ScrollBody } from "./page-shell";
 export { QrImage, qrPng } from "./qr-image";
 export { StatusPill } from "./status-pill";
-export { ThemeMenu } from "./theme-menu";
 export { ErrorText, LabelText, MutedNote, PageTitle } from "./text";

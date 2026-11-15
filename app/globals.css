@@ -1,11 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  color-scheme: light;
-  --paper-2: #fafbfd;
-  --stub-a: #f7f9fd;
-  --stub-b: #edf1f8;
-  --stub-glow: rgba(0, 113, 227, 0.1);
+  color-scheme: light dark;
+  --ticket-wash: rgba(64, 196, 214, 0.2);
   --field-a: rgba(255, 255, 255, 0.96);
   --field-b: rgba(255, 255, 255, 0.72);
   --field-edge: #ffffff;
@@ -80,12 +77,8 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root.t-auto {
-    color-scheme: dark;
-    --paper-2: #19191c;
-    --stub-a: #212125;
-    --stub-b: #17171a;
-    --stub-glow: rgba(41, 151, 255, 0.16);
+  :root {
+    --ticket-wash: rgba(120, 214, 232, 0.28);
     --field-a: rgba(46, 46, 50, 0.78);
     --field-b: rgba(28, 28, 30, 0.64);
     --field-edge: rgba(255, 255, 255, 0.08);
@@ -127,54 +120,6 @@
     --primary-press: #4da6ff;
     --primary-mid: #1a4474;
   }
-}
-
-:root.t-dark {
-  color-scheme: dark;
-  --paper-2: #19191c;
-  --stub-a: #212125;
-  --stub-b: #17171a;
-  --stub-glow: rgba(41, 151, 255, 0.16);
-  --field-a: rgba(46, 46, 50, 0.78);
-  --field-b: rgba(28, 28, 30, 0.64);
-  --field-edge: rgba(255, 255, 255, 0.08);
-  --page: #08080a;
-  --fg: #f5f5f7;
-  --fg2: #a1a1a6;
-  --fg3: #8d8d93;
-  --screen: #000000;
-  --card: #1c1c1e;
-  --paper: #1c1c1e;
-  --sep: rgba(84, 84, 88, 0.55);
-  --sep-strong: rgba(120, 120, 128, 0.6);
-  --perf: rgba(235, 235, 245, 0.22);
-  --fill: rgba(118, 118, 128, 0.24);
-  --thumb: #636366;
-  --glass: rgba(30, 30, 32, 0.58);
-  --glass-edge: rgba(255, 255, 255, 0.1);
-  --glass-line: rgba(255, 255, 255, 0.06);
-  --sheet: rgba(36, 36, 38, 0.86);
-  --accent: #2997ff;
-  --accent-tint: rgba(41, 151, 255, 0.18);
-  --ok: #30d158;
-  --ok-tint: rgba(48, 209, 88, 0.18);
-  --ok-solid: #30d158;
-  --warn: #ff9f0a;
-  --warn-tint: rgba(255, 159, 10, 0.18);
-  --danger: #ff453a;
-  --btn: #f5f5f7;
-  --on-btn: #000000;
-  --tshadow: rgba(0, 0, 0, 0.6);
-  --blob1: rgba(10, 132, 255, 0.3);
-  --blob2: rgba(100, 210, 255, 0.14);
-  --blob3: rgba(255, 159, 10, 0.12);
-  --bezel: #1c1c1e;
-  --bezel-edge: #3a3a3c;
-  --qr-paper: #ffffff;
-  --qr-ink: #111113;
-  --scrim: rgba(0, 0, 0, 0.5);
-  --primary-press: #4da6ff;
-  --primary-mid: #1a4474;
 }
 
 @theme inline {
@@ -522,7 +467,7 @@
   gap: 12px;
   padding: 20px 20px 18px;
   border-radius: 20px 20px 0 0;
-  background: linear-gradient(180deg, var(--paper), var(--paper-2));
+  background: var(--paper);
   -webkit-mask:
     radial-gradient(circle at 0 100%, #0000 11px, #000 11.5px) left / 51% 100% no-repeat,
     radial-gradient(circle at 100% 100%, #0000 11px, #000 11.5px) right / 51% 100% no-repeat;
@@ -531,14 +476,29 @@
     radial-gradient(circle at 100% 100%, #0000 11px, #000 11.5px) right / 51% 100% no-repeat;
 }
 
+.ps-ticket-body::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 76px;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--ticket-wash), transparent);
+}
+
+.ps-ticket-body > * {
+  position: relative;
+  z-index: 1;
+}
+
 .ps-ticket-stub {
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 18px 20px 14px;
-  background:
-    radial-gradient(90% 140% at 100% 100%, var(--stub-glow), transparent 62%),
-    linear-gradient(180deg, var(--stub-a), var(--stub-b));
+  background: var(--paper);
   -webkit-mask:
     radial-gradient(circle at 0 0, #0000 11px, #000 11.5px) left / 51% 100% no-repeat,
     radial-gradient(circle at 100% 0, #0000 11px, #000 11.5px) right / 51% 100% no-repeat;
@@ -558,7 +518,7 @@
 
 .ps-ticket-edge {
   height: 7px;
-  background: radial-gradient(circle at 5px 0, var(--stub-b) 5px, transparent 5.5px) 0 0 / 10px 7px repeat-x;
+  background: radial-gradient(circle at 5px 0, var(--paper) 5px, transparent 5.5px) 0 0 / 10px 7px repeat-x;
 }
 
 .ps-ticket-head {
@@ -672,12 +632,6 @@
   animation: ps-ticket-fresh 2.4s ease both;
 }
 
-.ps-ticket-empty {
-  margin: 0;
-  font-size: 13.5px;
-  color: var(--fg2);
-}
-
 .ps-ticket-rest {
   display: flex;
   align-items: flex-end;
@@ -690,11 +644,6 @@
   flex-direction: column;
   gap: 2px;
   padding-bottom: 5px;
-}
-
-.ps-ticket-rest-label small {
-  font-size: 12.5px;
-  color: var(--fg2);
 }
 
 .ps-ticket-big {

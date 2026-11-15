@@ -99,7 +99,6 @@ export function ActivePaymentView({
       <BrandBar
         title={`Pagar ${total}`}
         subtitle={`${tableName} · cuenta ${billId}`}
-        showTheme={false}
         leading={
           <button type="button" className="ps-round" aria-label="Cambiar monto" onClick={onBack}>
             <IconBack />

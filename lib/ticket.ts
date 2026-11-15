@@ -49,10 +49,9 @@ export type TicketModel = {
   restaurant: string;
   meta: string;
   total: string;
-  sectionLabel: "Ya pagaron" | "Pagos";
+  sectionLabel: "Ya pagaron" | "Pagos" | null;
   rows: TicketRow[];
   pending: TicketRow | null;
-  empty: string | null;
   restLabel: "Restante" | "Restante en efectivo";
   remainingCents: number;
   projectedCents: number;
@@ -63,8 +62,6 @@ export type TicketModel = {
   bar: { paid: number; pending: number; rest: number } | null;
   barLabel: string;
 };
-
-const EMPTY = "Aún no entra ningún pago. Aparecen aquí solos.";
 
 function clock(iso: string | null | undefined): string {
   if (!iso) return "";
@@ -152,9 +149,12 @@ export function buildTicket(source: TicketSource): TicketModel {
       }
     : null;
 
-  const paidCount = rows.some((row) => !row.waiting);
-  const sectionLabel: TicketModel["sectionLabel"] = paidCount || pending ? "Ya pagaron" : "Pagos";
-  const empty = rows.length === 0 && !pending ? EMPTY : null;
+  const hasSection = rows.length > 0 || pending !== null;
+  const sectionLabel: TicketModel["sectionLabel"] = hasSection
+    ? rows.some((row) => !row.waiting) || pending
+      ? "Ya pagaron"
+      : "Pagos"
+    : null;
 
   const caption: TicketCaption = covered
     ? { kind: "covered", text: "No falta nada por pagar." }
@@ -178,7 +178,6 @@ export function buildTicket(source: TicketSource): TicketModel {
     sectionLabel,
     rows,
     pending,
-    empty,
     restLabel: staff ? "Restante en efectivo" : "Restante",
     remainingCents,
     projectedCents,
