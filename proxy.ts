@@ -17,6 +17,8 @@ export function proxy(request: NextRequest) {
   if (pathname === "/caja/login" || pathname.startsWith("/caja/login/")) return NextResponse.next();
   if (pathname === "/api/caja/login") return NextResponse.next();
   if (!needsCashier(pathname, request.method)) return NextResponse.next();
+  // Demo pública: CASHIER_OPEN=true deja la caja abierta sin PIN. Quita la variable para volver a exigirlo.
+  if (process.env.CASHIER_OPEN === "true") return NextResponse.next();
 
   const pin = process.env.CASHIER_PIN?.trim() ?? "";
   const production = process.env.NODE_ENV === "production";

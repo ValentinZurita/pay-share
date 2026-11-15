@@ -10,7 +10,7 @@
 ![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=flat-square&logo=supabase&logoColor=white)
 ![CoDi con pey](https://img.shields.io/badge/CoDi-con%20pey-1E66F5?style=flat-square)
 
-[App en vivo](https://pay-share-one.vercel.app) &nbsp;·&nbsp; [Video](https://github.com/ValentinZurita/pay-share/raw/master/docs/video/pay-share.mp4) &nbsp;·&nbsp; [Caja](https://pay-share-one.vercel.app/caja) <sub>(PIN `977564`)</sub>
+[App en vivo](https://pay-share-one.vercel.app) &nbsp;·&nbsp; [Video](https://github.com/ValentinZurita/pay-share/raw/master/docs/video/pay-share.mp4) &nbsp;·&nbsp; [Caja](https://pay-share-one.vercel.app/caja)
 
 <br />
 
@@ -45,7 +45,7 @@ flowchart LR
 
 ## Pruébalo
 
-1. Entra a la [caja](https://pay-share-one.vercel.app/caja) con el PIN `977564`. En la **Mesa 5** toca **Abrir cuenta** y escribe un total, por ejemplo `500`.
+1. Entra a la [caja](https://pay-share-one.vercel.app/caja) (sin PIN en la demo). En la **Mesa 5** toca **Abrir cuenta** y escribe un total, por ejemplo `500`.
 2. Abre la [Mesa 5](https://pay-share-one.vercel.app/mesa/5) en tu celular. Escribe cuánto pagas, elige la propina, toca **Pagar** y luego **Código QR**. Paga el QR desde tu app de banco con CoDi.
 3. Vuelve a la caja: verás lo pagado por transferencia, la propina aparte y el restante en efectivo. Toca **Cerrar mesa** para dejarla libre.
 
