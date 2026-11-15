@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import QRCode from "qrcode";
 import { PrintButton } from "@/components/qrs/print-button";
+import { Card } from "@/components/ui/card";
+import { LabelText, PageTitle } from "@/components/ui/text";
 import { getAllSnapshots } from "@/lib/db";
 import { baseUrl, restaurantName } from "@/lib/env";
 
@@ -27,20 +29,27 @@ async function QrsPage() {
   );
 
   return (
-    <main className="qrs">
-      <div className="qrs-bar no-print">
-        <h1 className="h-page">{restaurant}</h1>
+    <main className="qrs-print-root mx-auto flex max-w-[1100px] flex-col gap-4 px-5 pt-6 pb-12">
+      <div className="no-print flex flex-wrap items-center justify-between gap-3">
+        <PageTitle>{restaurant}</PageTitle>
         <PrintButton />
       </div>
-      <div className="qrs-grid">
+      <div className="qrs-print-grid grid grid-cols-[repeat(auto-fill,minmax(min(240px,100%),1fr))] gap-4">
         {cards.map((card) => (
-          <article key={card.id} className="card qr-print">
-            <p className="lbl">{restaurant}</p>
+          <Card
+            key={card.id}
+            className="qr-print-card flex flex-col items-center gap-2 p-5 text-center break-inside-avoid"
+          >
+            <LabelText>{restaurant}</LabelText>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={card.image} alt={`Código para abrir ${card.name}`} />
-            <strong>{card.name}</strong>
-            <p>Escanea para pagar tu parte</p>
-          </article>
+            <img
+              src={card.image}
+              alt={`Código para abrir ${card.name}`}
+              className="aspect-square h-auto w-[min(220px,100%)]"
+            />
+            <strong className="text-[20px] text-ink">{card.name}</strong>
+            <p className="m-0">Escanea para pagar tu parte</p>
+          </Card>
         ))}
       </div>
     </main>

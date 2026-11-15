@@ -1,12 +1,15 @@
+import { EmptyState } from "@/components/ui/empty-state";
+import { DinerShell, ScrollBody } from "@/components/ui/page-shell";
+
 export default function NotFound() {
   return (
-    <div className="diner-col">
-      <div className="body">
-        <div className="center grow">
-          <p className="title">No encontramos esa mesa</p>
-          <p>Revisa el código e inténtalo de nuevo.</p>
-        </div>
-      </div>
-    </div>
+    <DinerShell>
+      <ScrollBody>
+        <EmptyState
+          title="No encontramos esa mesa"
+          description="Revisa el código e inténtalo de nuevo."
+        />
+      </ScrollBody>
+    </DinerShell>
   );
 }

@@ -1,9 +1,11 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 export function PrintButton() {
   return (
-    <button className="btn secondary" type="button" style={{ width: "auto", padding: "0 16px" }} onClick={() => window.print()}>
+    <Button variant="secondary" size="compact" onClick={() => window.print()}>
       Imprimir
-    </button>
+    </Button>
   );
 }

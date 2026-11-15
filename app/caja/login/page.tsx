@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { LoginForm } from "@/components/caja/login-form";
+import { Card } from "@/components/ui/card";
+import { CenteredCardShell } from "@/components/ui/page-shell";
 import { cashierPin, isProduction, restaurantName } from "@/lib/env";
 
 export default function Page({
@@ -33,15 +35,20 @@ async function LoginPage({
   const nextPath = query.next === "/qrs" || query.next?.startsWith("/caja") ? query.next : "/caja";
 
   return (
-    <div className="login">
+    <CenteredCardShell>
       {misconfigured ? (
-        <div className="card">
-          <h1>Falta configuración</h1>
-          <p>Define CASHIER_PIN en las variables de entorno del servidor. Sin ese PIN la caja no se abre.</p>
-        </div>
+        <Card className="flex flex-col gap-4 p-6">
+          <h1 className="m-0 text-[22px] font-bold tracking-[-0.03em] text-ink">
+            Falta configuración
+          </h1>
+          <p className="m-0">
+            Define CASHIER_PIN en las variables de entorno del servidor. Sin ese PIN la caja no se
+            abre.
+          </p>
+        </Card>
       ) : (
         <LoginForm restaurant={restaurant} nextPath={nextPath} />
       )}
-    </div>
+    </CenteredCardShell>
   );
 }

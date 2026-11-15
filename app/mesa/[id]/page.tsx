@@ -3,6 +3,8 @@ import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { MesaApp } from "@/components/mesa/mesa-app";
 import { AccountSkeleton } from "@/components/ui/account-card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { DinerShell, ScrollBody } from "@/components/ui/page-shell";
 import { getTableSnapshot } from "@/lib/db";
 import { peyMode, restaurantName } from "@/lib/env";
 
@@ -29,14 +31,11 @@ async function MesaPage({ params }: { params: Promise<{ id: string }> }) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "No pudimos conectar.";
     return (
-      <div className="diner-col">
-        <div className="body">
-          <div className="center grow">
-            <p className="title">Falta configuración</p>
-            <p>{message}</p>
-          </div>
-        </div>
-      </div>
+      <DinerShell>
+        <ScrollBody>
+          <EmptyState title="Falta configuración" description={message} />
+        </ScrollBody>
+      </DinerShell>
     );
   }
   if (!snapshot) notFound();
