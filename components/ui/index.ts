@@ -2,6 +2,7 @@ export { AccountCard, AccountSkeleton } from "./account-card";
 export { AppFrame } from "./app-frame";
 export { Badge, type BadgeVariant } from "./badge";
 export { Banner, type BannerVariant } from "./banner";
+export { BrandBar, cajaSubtitle } from "./brand-bar";
 export { BottomSheet, SheetCancel } from "./bottom-sheet";
 export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from "./button";
 export { Card, KeyValueList, type CardProps, type CardVariant, type KeyValueItem } from "./card";
@@ -13,14 +14,16 @@ export {
   IconClose,
   IconGo,
   IconLock,
+  IconLogo,
   IconMore,
   IconPhone,
   IconQr,
   IconReceipt,
+  IconTheme,
 } from "./icons";
 export { CurrencyInput, Field, TextInput, type TextInputProps } from "./input";
 export { CenteredCardShell, DinerShell, FooterBar, ScrollBody } from "./page-shell";
 export { QrImage, qrPng } from "./qr-image";
-export { ShopBar } from "./shop-bar";
 export { StatusPill } from "./status-pill";
+export { ThemeMenu } from "./theme-menu";
 export { ErrorText, LabelText, MutedNote, PageTitle } from "./text";

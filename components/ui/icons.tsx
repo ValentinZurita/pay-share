@@ -67,6 +67,24 @@ export function IconCheck(props: IconProps) {
   );
 }
 
+export function IconLogo({ className, ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={cn("h-5 w-5", className)} {...props} aria-hidden="true">
+      <path d="M11 3.5a8.5 8.5 0 0 0 0 17z" fill="currentColor" />
+      <path d="M13.5 3.9a8.5 8.5 0 0 1 0 16.2z" fill="currentColor" opacity="0.6" />
+    </svg>
+  );
+}
+
+export function IconTheme(props: IconProps) {
+  return (
+    <IconBase sizeClassName="h-[18px] w-[18px]" {...props}>
+      <circle cx="12" cy="12" r="8" />
+      <path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor" stroke="none" />
+    </IconBase>
+  );
+}
+
 export function IconLock(props: IconProps) {
   return (
     <IconBase sizeClassName="h-4 w-4" {...props}>

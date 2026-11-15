@@ -6,14 +6,13 @@ import { PaymentMethodSheet, PhoneChargeSheet } from "@/components/mesa/payment-
 import { ActivePaymentView, PaymentDoneView, type PaymentSession } from "@/components/mesa/payment-views";
 import type { TipMode } from "@/components/mesa/tip-selector";
 import { AccountCard } from "@/components/ui/account-card";
-import { Badge } from "@/components/ui/badge";
 import { Banner } from "@/components/ui/banner";
+import { BrandBar } from "@/components/ui/brand-bar";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { IconCheck, IconLock, IconReceipt } from "@/components/ui/icons";
 import { DinerShell, FooterBar, ScrollBody } from "@/components/ui/page-shell";
 import { qrPng } from "@/components/ui/qr-image";
-import { ShopBar } from "@/components/ui/shop-bar";
 import { formatMXN, parsePesosToCents } from "@/lib/money";
 import type { Snapshot } from "@/lib/types";
 import { useLiveSnapshot } from "@/lib/use-live-snapshot";
@@ -60,10 +59,10 @@ function useNow() {
 
 export function MesaApp({
   initial,
-  restaurant,
   mockMode,
 }: {
   initial: Snapshot;
+  /** Nombre del restaurante: lo muestra el ticket; el encabezado es la marca. */
   restaurant: string;
   mockMode: boolean;
 }) {
@@ -220,7 +219,7 @@ export function MesaApp({
   if (!bill) {
     return (
       <DinerShell>
-        <ShopBar restaurant={restaurant} end={<Badge variant="neutral">{snapshot.table.name}</Badge>} />
+        <BrandBar subtitle="Paga con CoDi" chip={snapshot.table.name} />
         <ScrollBody>
           <EmptyState
             icon={<IconReceipt />}
@@ -235,7 +234,6 @@ export function MesaApp({
   if (view === "done" && session) {
     return (
       <PaymentDoneView
-        restaurant={restaurant}
         tableName={snapshot.table.name}
         session={session}
         remainingCents={bill.remainingCents}
@@ -278,7 +276,7 @@ export function MesaApp({
 
   return (
     <DinerShell>
-      <ShopBar restaurant={restaurant} end={<Badge variant="neutral">{snapshot.table.name}</Badge>} />
+      <BrandBar subtitle="Paga con CoDi" chip={snapshot.table.name} />
       <ScrollBody>
         <AccountCard bill={bill} restLabel="Restante" staff={false} />
         {bill.remainingCents === 0 ? (

@@ -1,15 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Banner } from "@/components/ui/banner";
+import { BrandBar } from "@/components/ui/brand-bar";
 import { Button } from "@/components/ui/button";
 import { Card, KeyValueList } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { IconBack, IconCheck, IconPhone } from "@/components/ui/icons";
 import { DinerShell, FooterBar, ScrollBody } from "@/components/ui/page-shell";
 import { QrImage } from "@/components/ui/qr-image";
-import { ShopBar } from "@/components/ui/shop-bar";
 import { StatusPill } from "@/components/ui/status-pill";
 import { formatMXN } from "@/lib/money";
 
@@ -98,13 +97,13 @@ export function ActivePaymentView({
 
   return (
     <DinerShell>
-      <ShopBar
-        restaurant={`Pagar ${total}`}
+      <BrandBar
+        title={`Pagar ${total}`}
         subtitle={`${tableName} · cuenta ${billId}`}
         leading={
-          <Button variant="surface" size="icon" aria-label="Cambiar monto" onClick={onBack}>
+          <button type="button" className="ps-round" aria-label="Cambiar monto" onClick={onBack}>
             <IconBack />
-          </Button>
+          </button>
         }
       />
 
@@ -194,13 +193,11 @@ export function ActivePaymentView({
  * Confirmation view shown once the diner's payment is settled.
  */
 export function PaymentDoneView({
-  restaurant,
   tableName,
   session,
   remainingCents,
   onDone,
 }: {
-  restaurant: string;
   tableName: string;
   session: PaymentSession;
   remainingCents: number;
@@ -208,7 +205,7 @@ export function PaymentDoneView({
 }) {
   return (
     <DinerShell>
-      <ShopBar restaurant={restaurant} end={<Badge variant="neutral">{tableName}</Badge>} />
+      <BrandBar subtitle="Paga con CoDi" chip={tableName} />
       <ScrollBody>
         <EmptyState
           tone="success"
