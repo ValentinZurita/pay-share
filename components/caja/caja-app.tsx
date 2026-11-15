@@ -177,7 +177,7 @@ export function CajaApp({
   );
 
   const detail = selected?.bill ? (
-    <div className={wide ? "caja-detail" : undefined}>
+    <div className="caja-detail">
       {wide ? null : (
         <div className="bar">
           <button className="backb" type="button" aria-label="Volver a las mesas" onClick={() => setMobileDetail(false)}>
@@ -240,7 +240,7 @@ export function CajaApp({
       {wide ? (
         <div className="caja-split">
           {list}
-          {detail ?? <p className="empty-note">Elige una mesa para ver la cuenta.</p>}
+          {detail ?? <p className="empty-note caja-empty">Elige una mesa para ver la cuenta.</p>}
         </div>
       ) : showDetail ? (
         detail

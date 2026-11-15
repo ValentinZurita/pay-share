@@ -28,7 +28,7 @@ async function QrsPage() {
 
   return (
     <main className="qrs">
-      <div className="no-print" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div className="qrs-bar no-print">
         <h1 className="h-page">{restaurant}</h1>
         <PrintButton />
       </div>

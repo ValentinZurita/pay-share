@@ -3,7 +3,12 @@ import type { Snapshot } from "@/lib/types";
 
 function clock(iso: string | null): string {
   if (!iso) return "";
-  return new Date(iso).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
+  return new Intl.DateTimeFormat("es-MX", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: "America/Mexico_City",
+  }).format(new Date(iso));
 }
 
 export function AccountCard({

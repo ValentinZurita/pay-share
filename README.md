@@ -2,14 +2,26 @@
 
 Un código QR por mesa para que cada quien pague su parte con CoDi, desde el celular, y la caja vea al momento cuánto falta por cobrar en efectivo.
 
-## Qué necesitas
+## Demo, sin banco
 
-- [Node.js](https://nodejs.org) 22 o más reciente
-- [pnpm](https://pnpm.io) (`npm install -g pnpm`)
-- Una cuenta de [Supabase](https://supabase.com) (gratis)
-- Para cobrar de verdad: una cuenta en [Pey](https://portal.mipey.mx) y una app de banco con CoDi
+No hace falta cuenta bancaria, ni Pey, ni Supabase. Con `PEY_MODE=mock` el botón **Simular pago** marca el cobro. No mueve dinero. Es la forma de presentar el producto.
 
-## Correrlo en tu computadora
+En esta computadora la app está en [http://127.0.0.1:3001](http://127.0.0.1:3001). El puerto 3000 lo usa otra aplicación. `NEXT_PUBLIC_BASE_URL` tiene que ser esa misma dirección, porque va dentro de los QR de las mesas.
+
+Guion:
+
+1. En la caja, abre la Mesa 4 con $500.
+2. En otra pestaña abre `/mesa/4`. Escribe 300, propina 10% y, si quieres, un nombre.
+3. Paga, elige el código QR y pulsa **Simular pago**.
+4. La caja muestra, sola, $300 pagados, $30 de propina y $200 restantes en efectivo.
+
+Si reinicias el servidor, las mesas se borran: viven en la memoria, no en una base de datos.
+
+Para cobrar de verdad más adelante harían falta Supabase, una cuenta de Pey y una app de banco con CoDi. La cuenta bancaria real de Pey tarda días y no es necesaria para esta demo. Mientras la cuenta receptora sea la de prueba, `DEMO_MODE` se queda en `true`: Pey cobraría $0.01 y ese dinero no regresa.
+
+## Correrlo en otra computadora
+
+En esta máquina ya está corriendo. Estos pasos son para otra.
 
 1. Instala las dependencias:
 
@@ -30,7 +42,7 @@ cp .env.example .env.local
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API → Project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | La misma pantalla, llave `anon` / public |
 | `SUPABASE_SERVICE_ROLE_KEY` | La misma pantalla, llave `service_role`. Es secreta. No la compartas ni la pongas en el navegador |
-| `NEXT_PUBLIC_BASE_URL` | En local: `http://localhost:3000` |
+| `NEXT_PUBLIC_BASE_URL` | La misma dirección que abres en el navegador, sin barra al final |
 | `NEXT_PUBLIC_RESTAURANT_NAME` | El nombre que ve el comensal, por ejemplo `La Ceiba` |
 | `PEY_MODE` | `mock` para practicar sin banco. `live` cuando ya tengas la llave de Pey |
 | `DEMO_MODE` | Déjalo en `true`. Pey cobra $0.01 aunque la cuenta diga $500. **No lo pongas en `false` mientras uses la cuenta de prueba de Pey: ese dinero no regresa** |
@@ -53,6 +65,8 @@ Si todavía no tienes Supabase, deja esas tres llaves vacías y usa `PEY_MODE=mo
 Con `PEY_MODE=mock` aparece el botón **Simular pago**. No mueve dinero.
 
 ## Publicar en Vercel
+
+Opcional. La demo local no lo necesita. Hace falta tu cuenta de GitHub y la de Vercel.
 
 1. Crea un repositorio privado en GitHub y súbelo.
 2. En [Vercel](https://vercel.com), importa ese repositorio.
