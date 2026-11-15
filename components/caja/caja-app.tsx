@@ -14,8 +14,7 @@ export function CajaApp({ initial }: { initial: Snapshot[] }) {
   const tables = (Array.isArray(live.data) ? live.data : initial) as Snapshot[];
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [mobileDetail, setMobileDetail] = useState(false);
-  const [wide, setWide] = useState(false);
-  const [sheet, setSheet] = useState<null | "open" | "close" | "share" | "remove">(null);
+  const [sheet, setSheet] = useState<null | "open" | "close" | "share" | "remove" | "edit">(null);
   const [total, setTotal] = useState("");
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
@@ -31,14 +30,6 @@ export function CajaApp({ initial }: { initial: Snapshot[] }) {
 
   useEffect(() => {
     setOrigin(window.location.origin);
-  }, []);
-
-  useEffect(() => {
-    const media = window.matchMedia("(min-width: 900px)");
-    const apply = () => setWide(media.matches);
-    apply();
-    media.addEventListener("change", apply);
-    return () => media.removeEventListener("change", apply);
   }, []);
 
   const selected = tables.find((table) => table.table.id === selectedId) ?? null;
@@ -73,7 +64,7 @@ export function CajaApp({ initial }: { initial: Snapshot[] }) {
       return;
     }
     setSheet(null);
-    if (!wide) setMobileDetail(true);
+    setMobileDetail(true);
   }
 
   async function submitOpen(event?: React.FormEvent) {
@@ -104,7 +95,7 @@ export function CajaApp({ initial }: { initial: Snapshot[] }) {
         return;
       }
       setSheet(null);
-      if (!wide) setMobileDetail(true);
+      setMobileDetail(true);
       await live.reload();
     } catch {
       setError("No pudimos conectar. Revisa tu internet e inténtalo de nuevo.");
@@ -221,7 +212,7 @@ export function CajaApp({ initial }: { initial: Snapshot[] }) {
     </div>
   );
 
-  const showDetail = Boolean(selected?.bill) && (wide || mobileDetail);
+  const showDetail = Boolean(selected?.bill) && mobileDetail;
 
   async function addTable() {
     if (sending) return;
@@ -348,7 +339,7 @@ export function CajaApp({ initial }: { initial: Snapshot[] }) {
           return (
             <div
               key={table.table.id}
-              className={selectedId === table.table.id && wide ? "card mesa selected" : "card mesa"}
+              className={selectedId === table.table.id ? "card mesa selected" : "card mesa"}
             >
               <button className="mesa-main" type="button" onClick={() => openTable(table.table.id)}>
                 <span className="mesa-id">
@@ -400,13 +391,9 @@ export function CajaApp({ initial }: { initial: Snapshot[] }) {
   const detail = selected?.bill ? (
     <div className="caja-detail">
       <div className="bar detail-bar">
-        {wide ? (
-          <span className="bar-side" />
-        ) : (
-          <button className="backb" type="button" aria-label="Volver a las mesas" onClick={() => setMobileDetail(false)}>
-            <IconBack />
-          </button>
-        )}
+        <button className="backb" type="button" aria-label="Volver a las mesas" onClick={() => setMobileDetail(false)}>
+          <IconBack />
+        </button>
         <h1 className="detail-title">
           {selected.table.name}
           <small>Cuenta {selected.bill.id}</small>
@@ -457,16 +444,12 @@ export function CajaApp({ initial }: { initial: Snapshot[] }) {
 
   return (
     <div className="caja-page">
-      {wide ? (
-        <div className="caja-split">
-          {list}
+      <div className={showDetail ? "caja-split is-detail" : "caja-split"}>
+        <div className="caja-pane-list">{list}</div>
+        <div className="caja-pane-detail">
           {detail ?? <p className="empty-note caja-empty">Elige una mesa para ver la cuenta.</p>}
         </div>
-      ) : showDetail ? (
-        detail
-      ) : (
-        list
-      )}
+      </div>
       {sheet === "open" && selected ? (
         <BottomSheet title={`Abrir cuenta · ${selected.table.name}`} onClose={() => setSheet(null)}>
           <form

@@ -70,7 +70,23 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   overflow: hidden;
   background: var(--bg);
 }
-.caja-page { width: 100%; max-width: 1040px; }
+.caja-page { width: 100%; max-width: 1360px; }
+.caja-split {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.caja-pane-list, .caja-pane-detail {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.caja-pane-detail { display: none; }
+.caja-split.is-detail .caja-pane-list { display: none; }
+.caja-split.is-detail .caja-pane-detail { display: flex; }
 .caja-detail {
   flex: 1;
   min-width: 0;
@@ -187,9 +203,9 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   gap: 20px;
 }
 .caja-page > .body,
-.caja-split > .body {
-  padding-top: calc(32px + env(safe-area-inset-top));
-  padding-inline: 28px;
+.caja-pane-list > .body {
+  padding-top: calc(24px + env(safe-area-inset-top));
+  padding-inline: 20px;
   padding-bottom: 24px;
 }
 .foot {
@@ -448,7 +464,9 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   min-height: 118px;
   width: 100%;
   padding: 0;
+  transition: box-shadow 150ms var(--ease);
 }
+.mesa:hover { box-shadow: var(--sh-2); }
 .mesa-main {
   text-align: left;
   padding: 14px;
@@ -614,35 +632,88 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   .opts { gap: 4px; }
 }
 @media (min-width: 600px) and (max-width: 899px) {
-  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
 }
 @media (min-width: 768px) {
-  .sheet { width: min(100%, 480px); }
+  .scrim { align-items: center; padding: 24px; }
+  .sheet {
+    width: min(100%, 460px);
+    border-radius: 16px;
+    padding: 20px 24px 24px;
+    box-shadow: var(--sh-2), 0 20px 48px rgba(10, 37, 64, 0.2);
+  }
+  .sheet-grab { cursor: default; padding-top: 0; }
+  .sheet-grab:active { cursor: default; }
+  .sheet-handle { display: none; }
 }
 @media (min-width: 900px) {
   .caja-split {
     flex: 1;
     min-height: 0;
     display: grid;
-    grid-template-columns: 360px minmax(0, 560px);
+    grid-template-columns: minmax(0, 1fr) 400px;
     grid-template-rows: minmax(0, 1fr);
-    justify-content: center;
-    gap: 24px;
+    gap: 28px;
     align-items: stretch;
-    padding: 8px 20px 24px;
+    padding: 24px 28px 28px;
   }
-  .caja-split > .body {
+  .caja-split .caja-pane-list,
+  .caja-split.is-detail .caja-pane-list,
+  .caja-split .caja-pane-detail,
+  .caja-split.is-detail .caja-pane-detail {
+    display: flex;
+  }
+  .caja-pane-list > .body {
     min-height: 0;
     overflow: auto;
+    padding: 4px 4px 24px;
   }
-  .caja-detail { height: 100%; }
-  .caja-detail > .bar { padding-top: 8px; }
+  .caja-split .detail-bar > .backb { display: none; }
+  .caja-split .grid {
+    grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+    gap: 14px;
+  }
+  .caja-detail {
+    height: 100%;
+    background: var(--surface);
+    border-radius: 16px;
+    box-shadow: var(--sh-1);
+    overflow: hidden;
+  }
+  .caja-split .detail-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--line);
+    min-height: 0;
+  }
+  .caja-split .detail-title { text-align: left; }
+  .caja-split .caja-detail > .body { padding: 20px; gap: 16px; }
+  .caja-split .caja-detail .card { box-shadow: none; border: 1px solid var(--line); }
+  .caja-split .caja-detail > .foot {
+    padding: 16px 20px;
+    border-top: 1px solid var(--line);
+    box-shadow: none;
+  }
   .caja-empty {
     display: grid;
     place-items: center;
     height: 100%;
     margin: 0;
+    padding: 32px;
     text-align: center;
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1px dashed var(--line-strong);
+  }
+}
+@media (min-width: 1200px) {
+  .caja-split {
+    grid-template-columns: minmax(0, 1fr) 440px;
+    gap: 32px;
+    padding: 28px 36px 32px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
