@@ -17,6 +17,8 @@
 
 <sub>▶ <a href="https://github.com/ValentinZurita/pay-share/raw/master/docs/video/pay-share.mp4">Ver video completo (56 s)</a></sub>
 
+<sub>🏆 Cursor Hackatón México · Villahermosa · Proyecto con API de <b>pey</b> (CoDi)</sub>
+
 </div>
 
 ## El problema
@@ -27,9 +29,9 @@ Cuando una mesa paga por separado, la caja revisa transferencias a mano, la prop
 
 <table>
   <tr>
-    <td align="center" width="25%"><img src="docs/img/mesa-parte.webp" width="200" alt="El comensal escribe su parte y la propina" /></td>
-    <td align="center" width="25%"><img src="docs/img/mesa-codi.webp" width="200" alt="Cobro CoDi generado con pey" /></td>
-    <td align="center" width="25%"><img src="docs/img/mesa-pagado.webp" width="200" alt="Pago recibido" /></td>
+    <td align="center" width="33%"><img src="docs/img/mesa-parte.webp" width="200" alt="El comensal escribe su parte y la propina" /></td>
+    <td align="center" width="33%"><img src="docs/img/mesa-codi.webp" width="200" alt="Cobro CoDi generado con pey" /></td>
+    <td align="center" width="33%"><img src="docs/img/mesa-pagado.webp" width="200" alt="Pago recibido" /></td>
   </tr>
   <tr>
     <td align="center"><sub><b>1.</b> Escanea el QR y pone su parte + propina</sub></td>
@@ -41,11 +43,7 @@ Cuando una mesa paga por separado, la caja revisa transferencias a mano, la prop
 <img src="docs/img/caja.webp" width="100%" alt="La caja ve lo pagado, la propina aparte y lo que falta en efectivo" />
 <p align="center"><sub><b>4.</b> La caja se actualiza sola: pagado por transferencia, propinas aparte y restante en efectivo.</sub></p>
 
-1. El cajero abre la mesa escribiendo solo el total.
-2. El comensal escanea el QR fijo de la mesa y escribe cuánto paga y su propina.
-3. PayShare genera un cobro CoDi con pey y el comensal lo paga desde su banco, sin app ni comisión.
-4. pey avisa del pago y la caja se actualiza al instante.
-5. Se cobra el efectivo restante y se cierra la mesa.
+El cajero abre la mesa con solo el total. Cada quien escanea el QR, paga lo suyo con CoDi y la caja ve el resto en efectivo.
 
 ## Cómo usa pey
 
@@ -75,7 +73,7 @@ sequenceDiagram
 3. Regresa a la caja: verás lo pagado, la propina aparte y lo que falta en efectivo.
 4. Cierra la mesa con **Cerrar mesa**.
 
-> La versión publicada usa el modo de prueba de pey mientras se activa la cuenta CLABE; con `PEY_MODE=live` usa el API real.
+> ⚠️ **Honestidad ante todo:** la versión publicada corre con el pago **simulado** (botón *Simular pago*) porque la cuenta CLABE de pey tarda días en activarse. La integración real con pey ya está en el código; con `PEY_MODE=live` y una `PEY_API_KEY` cobra de verdad (`DEMO_MODE` limita el cobro a $0.01).
 
 ## Stack
 
