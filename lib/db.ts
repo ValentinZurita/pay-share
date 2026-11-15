@@ -55,7 +55,79 @@ export function resetMemoryForTests(): void {
 export function isMemoryMode(): boolean {
   if (testClient) return false;
   if (process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.NEXT_PUBLIC_SUPABASE_URL) return false;
-  return !isProduction();
+  if (!isProduction()) return true;
+  return (process.env.PEY_MODE?.trim() || "mock") !== "live";
+}
+
+const STATE_PATH = "pay-share/state.json";
+let storeDepth = 0;
+let storeChain: Promise<void> = Promise.resolve();
+let releaseStore: (() => void) | null = null;
+
+async function loadRemote(memory: Memory): Promise<void> {
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (!token) return;
+  const { get } = await import("@vercel/blob");
+  const blob = await get(STATE_PATH, { access: "private", token, useCache: false });
+  if (!blob?.stream) return;
+  const data = (await new Response(blob.stream).json()) as Partial<Memory>;
+  if (!Array.isArray(data.bills) || !Array.isArray(data.payments)) return;
+  memory.bills = data.bills;
+  memory.payments = data.payments;
+  memory.billSeq = data.billSeq ?? 0;
+  memory.paySeq = data.paySeq ?? 0;
+  if (Array.isArray(data.tables) && data.tables.length > 0) memory.tables = data.tables;
+}
+
+async function saveRemote(memory: Memory): Promise<void> {
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (!token) return;
+  const { put } = await import("@vercel/blob");
+  await put(STATE_PATH, JSON.stringify(memory), {
+    access: "private",
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    contentType: "application/json",
+    token,
+  });
+}
+
+async function enterStore(): Promise<void> {
+  if (!isMemoryMode()) return;
+  if (storeDepth > 0) {
+    storeDepth += 1;
+    return;
+  }
+  const previous = storeChain;
+  let release: () => void = () => {};
+  storeChain = new Promise((resolve) => {
+    release = resolve;
+  });
+  await previous;
+  storeDepth = 1;
+  releaseStore = release;
+  try {
+    await loadRemote(memoryStore());
+  } catch (error) {
+    storeDepth = 0;
+    releaseStore = null;
+    release();
+    throw error;
+  }
+}
+
+async function leaveStore(write: boolean): Promise<void> {
+  if (!isMemoryMode()) return;
+  const release = storeDepth === 1 ? releaseStore : null;
+  try {
+    if (storeDepth === 1 && write) await saveRemote(memoryStore());
+  } finally {
+    storeDepth -= 1;
+    if (release) {
+      releaseStore = null;
+      release();
+    }
+  }
 }
 
 function server(): SupabaseClient {
@@ -140,6 +212,8 @@ function memoryPayments(billId: number): PaymentRow[] {
 }
 
 export async function getTableSnapshot(id: number): Promise<Snapshot | null> {
+  await enterStore();
+  try {
   if (isMemoryMode()) {
     const table = memoryTable(id);
     if (!table) return null;
@@ -166,9 +240,14 @@ export async function getTableSnapshot(id: number): Promise<Snapshot | null> {
   const paymentsResult = await supabase.from("payments").select("*").eq("bill_id", bill.id);
   dbError(paymentsResult.error);
   return toSnapshot(table, bill, (paymentsResult.data ?? []) as PaymentRow[]);
+  } finally {
+    await leaveStore(false);
+  }
 }
 
 export async function getAllSnapshots(): Promise<Snapshot[]> {
+  await enterStore();
+  try {
   if (isMemoryMode()) {
     return memoryStore().tables.map((table) => {
       const bill = memoryOpenBill(table.id);
@@ -201,9 +280,14 @@ export async function getAllSnapshots(): Promise<Snapshot[]> {
     const rows = bill ? payments.filter((payment) => payment.bill_id === bill.id) : [];
     return toSnapshot(table, bill, rows);
   });
+  } finally {
+    await leaveStore(false);
+  }
 }
 
 export async function openBill(tableId: number, totalCents: number): Promise<Snapshot> {
+  await enterStore();
+  try {
   if (!Number.isInteger(tableId) || tableId <= 0) {
     throw new AppError(400, "La mesa no es válida.");
   }
@@ -244,9 +328,14 @@ export async function openBill(tableId: number, totalCents: number): Promise<Sna
   const snapshot = await getTableSnapshot(tableId);
   if (!snapshot) throw new AppError(404, "No encontramos esa mesa.");
   return snapshot;
+  } finally {
+    await leaveStore(true);
+  }
 }
 
 export async function closeBill(billId: number): Promise<Snapshot> {
+  await enterStore();
+  try {
   if (isMemoryMode()) {
     const bill = memoryStore().bills.find((item) => item.id === billId);
     if (!bill) throw new AppError(404, "No encontramos esa cuenta.");
@@ -277,9 +366,14 @@ export async function closeBill(billId: number): Promise<Snapshot> {
   const snapshot = await getTableSnapshot(bill.table_id);
   if (!snapshot) throw new AppError(404, "No encontramos esa mesa.");
   return snapshot;
+  } finally {
+    await leaveStore(true);
+  }
 }
 
 export async function getBillContext(billId: number): Promise<BillForPayment | null> {
+  await enterStore();
+  try {
   if (isMemoryMode()) {
     const bill = memoryStore().bills.find((item) => item.id === billId);
     if (!bill) return null;
@@ -340,6 +434,9 @@ export async function getBillContext(billId: number): Promise<BillForPayment | n
     totalCents: bill.total_cents,
     remainingCents: totals.remainingCents,
   };
+  } finally {
+    await leaveStore(false);
+  }
 }
 
 export async function createPendingPayment(input: {
@@ -351,6 +448,8 @@ export async function createPendingPayment(input: {
   method: PaymentMethod;
   expiresAt: string;
 }): Promise<PaymentRow> {
+  await enterStore();
+  try {
   const row = {
     bill_id: input.billId,
     amount_cents: input.amountCents,
@@ -379,12 +478,17 @@ export async function createPendingPayment(input: {
   const inserted = await server().from("payments").insert(row).select("*").single();
   dbError(inserted.error);
   return inserted.data as PaymentRow;
+  } finally {
+    await leaveStore(true);
+  }
 }
 
 export async function attachProviderRefs(
   paymentId: number,
   refs: { qrId?: string | null; transactionId?: string | null },
 ): Promise<void> {
+  await enterStore();
+  try {
   const values: { pey_qr_id?: string; pey_transaction_id?: string } = {};
   if (refs.qrId) values.pey_qr_id = refs.qrId;
   if (refs.transactionId) values.pey_transaction_id = refs.transactionId;
@@ -400,24 +504,37 @@ export async function attachProviderRefs(
 
   const updated = await server().from("payments").update(values).eq("id", paymentId);
   dbError(updated.error);
+  } finally {
+    await leaveStore(true);
+  }
 }
 
 export async function deletePendingPayment(paymentId: number): Promise<void> {
+  await enterStore();
+  try {
   if (isMemoryMode()) {
     memoryStore().payments = memoryStore().payments.filter((payment) => payment.id !== paymentId || payment.status !== "pending");
     return;
   }
   const deleted = await server().from("payments").delete().eq("id", paymentId).eq("status", "pending");
   dbError(deleted.error);
+  } finally {
+    await leaveStore(true);
+  }
 }
 
 export async function getPayment(paymentId: number): Promise<PaymentRow | null> {
+  await enterStore();
+  try {
   if (isMemoryMode()) {
     return memoryStore().payments.find((payment) => payment.id === paymentId) ?? null;
   }
   const result = await server().from("payments").select("*").eq("id", paymentId).maybeSingle();
   dbError(result.error);
   return (result.data as PaymentRow | null) ?? null;
+  } finally {
+    await leaveStore(false);
+  }
 }
 
 export async function findPaymentForWebhook(ref: {
@@ -425,6 +542,8 @@ export async function findPaymentForWebhook(ref: {
   transactionId?: string | null;
   paymentId?: number | null;
 }): Promise<PaymentRow | null> {
+  await enterStore();
+  try {
   if (isMemoryMode()) {
     if (ref.qrId) {
       const byQr = memoryStore().payments.find((payment) => payment.pey_qr_id === ref.qrId);
@@ -455,10 +574,15 @@ export async function findPaymentForWebhook(ref: {
     if (byId.data) return byId.data as PaymentRow;
   }
   return null;
+  } finally {
+    await leaveStore(false);
+  }
 }
 
 /** Cambia la fila solo si sigue pendiente. Un aviso repetido no la toca. */
 export async function markPaid(paymentId: number, transactionId: string): Promise<boolean> {
+  await enterStore();
+  try {
   const paidAt = new Date().toISOString();
   if (isMemoryMode()) {
     const payment = memoryStore().payments.find((item) => item.id === paymentId && item.status === "pending");
@@ -478,4 +602,7 @@ export async function markPaid(paymentId: number, transactionId: string): Promis
     .maybeSingle();
   dbError(updated.error);
   return updated.data !== null;
+  } finally {
+    await leaveStore(true);
+  }
 }
