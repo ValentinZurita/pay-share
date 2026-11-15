@@ -1,36 +1,25 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { PaymentForm } from "@/components/mesa/payment-form";
+import { PaymentMethodSheet, PhoneChargeSheet } from "@/components/mesa/payment-sheets";
+import { ActivePaymentView, PaymentDoneView, type PaymentSession } from "@/components/mesa/payment-views";
+import type { TipMode } from "@/components/mesa/tip-selector";
 import { AccountCard } from "@/components/ui/account-card";
-import { BottomSheet, SheetCancel } from "@/components/ui/bottom-sheet";
-import { IconCheck, IconGo, IconLock, IconPhone, IconQr, IconReceipt } from "@/components/ui/icons";
-import { qrPng, QrImage } from "@/components/ui/qr-image";
+import { Badge } from "@/components/ui/badge";
+import { Banner } from "@/components/ui/banner";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { IconCheck, IconLock, IconReceipt } from "@/components/ui/icons";
+import { DinerShell, FooterBar, ScrollBody } from "@/components/ui/page-shell";
+import { qrPng } from "@/components/ui/qr-image";
 import { ShopBar } from "@/components/ui/shop-bar";
 import { formatMXN, parsePesosToCents } from "@/lib/money";
 import type { Snapshot } from "@/lib/types";
 import { useLiveSnapshot } from "@/lib/use-live-snapshot";
 
-type TipMode = "0" | "10" | "15" | "20" | "otra";
 type View = "pay" | "qr" | "pn" | "done";
 type Sheet = null | "method" | "phone";
-
-type Session = {
-  paymentId: number;
-  method: "qr" | "pn";
-  qrString?: string;
-  expiresAt: string;
-  amountCents: number;
-  tipCents: number;
-  phoneLast4?: string;
-};
-
-const TIPS: { id: TipMode; label: string }[] = [
-  { id: "0", label: "No" },
-  { id: "10", label: "10%" },
-  { id: "15", label: "15%" },
-  { id: "20", label: "20%" },
-  { id: "otra", label: "Otra" },
-];
 
 function assess(amount: string, remaining: number, tipMode: TipMode, tipCustom: string) {
   if (!amount.trim()) return { part: 0, tip: 0, error: "", ok: false, sum: 0 };
@@ -48,7 +37,12 @@ function assess(amount: string, remaining: number, tipMode: TipMode, tipCustom: 
   }
   let tip = 0;
   try {
-    tip = tipMode === "otra" ? (tipCustom.trim() ? parsePesosToCents(tipCustom) : 0) : Math.round((part * Number(tipMode)) / 100);
+    tip =
+      tipMode === "otra"
+        ? tipCustom.trim()
+          ? parsePesosToCents(tipCustom)
+          : 0
+        : Math.round((part * Number(tipMode)) / 100);
   } catch {
     return { part, tip: 0, error: "La propina debe ser un monto, por ejemplo 30.", ok: false, sum: 0 };
   }
@@ -85,7 +79,7 @@ export function MesaApp({
   const [tipCustom, setTipCustom] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<PaymentSession | null>(null);
   const [sending, setSending] = useState(false);
   const [formError, setFormError] = useState("");
   const [saved, setSaved] = useState(false);
@@ -139,6 +133,14 @@ export function MesaApp({
     };
   }, [session, view, reload]);
 
+  useEffect(() => {
+    if (view !== "qr" || !session?.qrString) return;
+    void qrPng(session.qrString).then((blob) => {
+      const file = new File([blob], "codigo-codi.png", { type: "image/png" });
+      setCanShare(Boolean(navigator.canShare?.({ files: [file] })));
+    });
+  }, [view, session?.qrString]);
+
   async function createCharge(method: "qr" | "pn", phoneDigits?: string) {
     if (!bill || !quote.ok || sending) return;
     setSending(true);
@@ -156,7 +158,12 @@ export function MesaApp({
           name: name.trim() || undefined,
         }),
       });
-      const body = (await response.json()) as { error?: string; paymentId?: number; qrString?: string; expiresAt?: string };
+      const body = (await response.json()) as {
+        error?: string;
+        paymentId?: number;
+        qrString?: string;
+        expiresAt?: string;
+      };
       if (!response.ok || !body.paymentId || !body.expiresAt) {
         setFormError(body.error ?? "No se pudo crear el cobro. Inténtalo de nuevo.");
         setSheet(method === "pn" ? "phone" : null);
@@ -203,299 +210,113 @@ export function MesaApp({
     }
   }
 
-  useEffect(() => {
-    if (view !== "qr" || !session?.qrString) return;
-    void qrPng(session.qrString).then((blob) => {
-      const file = new File([blob], "codigo-codi.png", { type: "image/png" });
-      setCanShare(Boolean(navigator.canShare?.({ files: [file] })));
-    });
-  }, [view, session?.qrString]);
-
   const expired = session ? new Date(session.expiresAt).getTime() <= now : false;
   const remainMs = session ? Math.max(0, new Date(session.expiresAt).getTime() - now) : 0;
   const remainSeconds = Math.ceil(remainMs / 1000);
   const remainLabel = `${Math.floor(remainSeconds / 60)}:${String(remainSeconds % 60).padStart(2, "0")}`;
   const showError = quote.error || formError;
-  const connectionError = offline || live.error;
+  const connectionError = Boolean(offline || live.error);
 
   if (!bill) {
     return (
-      <div className="diner-col">
-        <ShopBar restaurant={restaurant} end={<span className="badge neutral">{snapshot.table.name}</span>} />
-        <div className="body">
-          <div className="center grow">
-            <div className="icoc">
-              <IconReceipt />
-            </div>
-            <p className="title">Esta mesa no tiene cuenta abierta</p>
-            <p>Pídela a tu mesero.</p>
-          </div>
-        </div>
-      </div>
+      <DinerShell>
+        <ShopBar restaurant={restaurant} end={<Badge variant="neutral">{snapshot.table.name}</Badge>} />
+        <ScrollBody>
+          <EmptyState
+            icon={<IconReceipt />}
+            title="Esta mesa no tiene cuenta abierta"
+            description="Pídela a tu mesero."
+          />
+        </ScrollBody>
+      </DinerShell>
     );
   }
 
   if (view === "done" && session) {
     return (
-      <div className="diner-col">
-        <ShopBar restaurant={restaurant} end={<span className="badge neutral">{snapshot.table.name}</span>} />
-        <div className="body">
-          <div className="center grow">
-            <div className="okc">
-              <IconCheck />
-            </div>
-            <p className="title">Pago recibido</p>
-            <p className="huge num">{formatMXN(session.amountCents + session.tipCents)}</p>
-            <div className="card kv">
-              <div>
-                <span>Tu parte</span>
-                <span className="num">{formatMXN(session.amountCents)}</span>
-              </div>
-              <div className="t">
-                <span>Propina</span>
-                <span className="num">{formatMXN(session.tipCents)}</span>
-              </div>
-              <div>
-                <span>Restante de la mesa</span>
-                <span className="num">{bill.remainingCents === 0 ? "Cubierta" : formatMXN(bill.remainingCents)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="foot">
-          <button
-            className="btn primary"
-            type="button"
-            onClick={() => {
-              setView("pay");
-              setSession(null);
-              setAmount("");
-              setTipMode("0");
-              setTipCustom("");
-              setName("");
-            }}
-          >
-            Listo
-          </button>
-        </div>
-      </div>
+      <PaymentDoneView
+        restaurant={restaurant}
+        tableName={snapshot.table.name}
+        session={session}
+        remainingCents={bill.remainingCents}
+        onDone={() => {
+          setView("pay");
+          setSession(null);
+          setAmount("");
+          setTipMode("0");
+          setTipCustom("");
+          setName("");
+        }}
+      />
     );
   }
 
   if ((view === "qr" || view === "pn") && session) {
-    const total = formatMXN(session.amountCents + session.tipCents);
     return (
-      <div className="diner-col">
-        <div className="bar">
-          <button
-            className="backb"
-            type="button"
-            aria-label="Cambiar monto"
-            onClick={() => {
-              setView("pay");
-              setSession(null);
-            }}
-          >
-            <svg className="i" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M15 5l-7 7 7 7" />
-            </svg>
-          </button>
-          <span className="name num">
-            Pagar {total}
-            <small>
-              {snapshot.table.name} · cuenta {bill.id}
-            </small>
-          </span>
-        </div>
-        {view === "qr" && session.qrString ? (
-          <div className="body">
-            <div className="center">
-              <QrImage value={session.qrString} dim={expired} />
-              <span className="status" role="status">
-                {expired ? null : <span className="spin" />}
-                {expired ? "Este código venció" : `Esperando tu pago · vence en ${remainLabel}`}
-              </span>
-              <ol className="card how">
-                <li>
-                  <b>1</b>Guarda el código en tus fotos
-                </li>
-                <li>
-                  <b>2</b>Abre la app de tu banco y entra a CoDi
-                </li>
-                <li>
-                  <b>3</b>Elige leer el código desde una imagen
-                </li>
-              </ol>
-              {mockMode ? <Simulate paymentId={session.paymentId} /> : null}
-            </div>
-          </div>
-        ) : (
-          <div className="body">
-            <div className="center grow">
-              <div className="icoc">
-                <IconPhone />
-              </div>
-              <p className="title">Revisa la app de tu banco</p>
-              <p>
-                Te enviamos un cobro por <b className="num">{total}</b> al celular terminado en {session.phoneLast4}.
-              </p>
-              <span className="status" role="status">
-                <span className="spin" />
-                Esperando tu pago
-              </span>
-              {mockMode ? <Simulate paymentId={session.paymentId} /> : null}
-            </div>
-          </div>
-        )}
-        <div className="foot">
-          {connectionError ? (
-            <p className="banner" role="alert">
-              No pudimos conectar. Revisa tu internet e inténtalo de nuevo.
-            </p>
-          ) : null}
-          {view === "qr" ? (
-            <>
-              <button
-                className="btn primary"
-                type="button"
-                disabled={sending}
-                onClick={() => (expired ? void createCharge("qr") : void saveQr())}
-              >
-                {expired ? (
-                  "Generar otro código"
-                ) : saved ? (
-                  <>
-                    <IconCheck /> Guardado en tus fotos
-                  </>
-                ) : (
-                  "Guardar código"
-                )}
-              </button>
-              {canShare && !expired ? (
-                <button className="btn secondary" type="button" onClick={() => void shareQr()}>
-                  Compartir
-                </button>
-              ) : null}
-            </>
-          ) : (
-            <button className="btn secondary" type="button" disabled={sending} onClick={() => void createCharge("qr")}>
-              Mejor usar código QR
-            </button>
-          )}
-        </div>
-      </div>
+      <ActivePaymentView
+        session={session}
+        tableName={snapshot.table.name}
+        billId={bill.id}
+        expired={expired}
+        remainLabel={remainLabel}
+        saved={saved}
+        canShare={canShare}
+        sending={sending}
+        connectionError={connectionError}
+        mockMode={mockMode}
+        onBack={() => {
+          setView("pay");
+          setSession(null);
+        }}
+        onRegenerateQr={() => void createCharge("qr")}
+        onSaveQr={() => void saveQr()}
+        onShareQr={() => void shareQr()}
+        onSwitchToQr={() => void createCharge("qr")}
+      />
     );
   }
 
   return (
-    <div className="diner-col">
-      <ShopBar restaurant={restaurant} end={<span className="badge neutral">{snapshot.table.name}</span>} />
-      <div className="body">
+    <DinerShell>
+      <ShopBar restaurant={restaurant} end={<Badge variant="neutral">{snapshot.table.name}</Badge>} />
+      <ScrollBody>
         <AccountCard bill={bill} restLabel="Restante" staff={false} />
         {bill.remainingCents === 0 ? (
-          <div className="center grow">
-            <div className="okc">
-              <IconCheck />
-            </div>
-            <p className="title">No falta nada por pagar</p>
-            <p>La cuenta ya está cubierta.</p>
-          </div>
+          <EmptyState
+            tone="success"
+            icon={<IconCheck />}
+            title="No falta nada por pagar"
+            description="La cuenta ya está cubierta."
+          />
         ) : (
-          <>
-            <div className="field">
-              <label htmlFor="amount">¿Cuánto pagas tú?</label>
-              <div className={showError ? "input bad" : "input"}>
-                <span className="currency">$</span>
-                <input
-                  id="amount"
-                  inputMode="decimal"
-                  autoComplete="off"
-                  enterKeyHint="done"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(event) => {
-                    setAmount(event.target.value);
-                    setFormError("");
-                  }}
-                />
-                <em>MXN</em>
-              </div>
-              {showError ? (
-                <p className="msg-err" role="alert">
-                  {formError || quote.error}
-                </p>
-              ) : null}
-              <button
-                className="link"
-                type="button"
-                onClick={() => setAmount((bill.remainingCents / 100).toFixed(2))}
-              >
-                Pagar todo el restante
-              </button>
-            </div>
-            <div className="field">
-              <div className="field-head">
-                <span className="flabel">Propina</span>
-                <span className="tipval num">{quote.tip > 0 ? `+ ${formatMXN(quote.tip)}` : ""}</span>
-              </div>
-              <div className="opts" role="group" aria-label="Propina">
-                {TIPS.map((tip) => (
-                  <button
-                    key={tip.id}
-                    className="optb"
-                    type="button"
-                    aria-pressed={tipMode === tip.id}
-                    onClick={() => setTipMode(tip.id)}
-                  >
-                    {tip.label}
-                  </button>
-                ))}
-              </div>
-              {tipMode === "otra" ? (
-                <div className="input">
-                  <span className="currency">$</span>
-                  <input
-                    inputMode="decimal"
-                    autoComplete="off"
-                    placeholder="0.00"
-                    aria-label="Propina en pesos"
-                    value={tipCustom}
-                    onChange={(event) => setTipCustom(event.target.value)}
-                  />
-                  <em>MXN</em>
-                </div>
-              ) : null}
-            </div>
-            <div className="field">
-              <label htmlFor="payer-name">
-                Tu nombre <span className="opt-note">(opcional)</span>
-              </label>
-              <div className="input">
-                <input
-                  id="payer-name"
-                  maxLength={20}
-                  autoComplete="given-name"
-                  placeholder="Para que la mesa vea quién pagó"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  style={{ fontSize: 16, fontWeight: 500 }}
-                />
-              </div>
-            </div>
-          </>
+          <PaymentForm
+            amount={amount}
+            tipMode={tipMode}
+            tipCustom={tipCustom}
+            tipCents={quote.tip}
+            name={name}
+            error={showError}
+            onAmountChange={(value) => {
+              setAmount(value);
+              setFormError("");
+            }}
+            onPayRemaining={() => setAmount((bill.remainingCents / 100).toFixed(2))}
+            onTipModeChange={setTipMode}
+            onTipCustomChange={setTipCustom}
+            onNameChange={setName}
+          />
         )}
-      </div>
+      </ScrollBody>
+
       {bill.remainingCents > 0 ? (
-        <div className="foot">
+        <FooterBar>
           {connectionError ? (
-            <p className="banner" role="alert">
-              No pudimos conectar. Revisa tu internet e inténtalo de nuevo.
-            </p>
+            <Banner>No pudimos conectar. Revisa tu internet e inténtalo de nuevo.</Banner>
           ) : null}
-          <button
-            className="btn primary"
-            type="button"
+          <Button
+            variant="primary"
             disabled={sending || (!quote.ok && !connectionError)}
+            iconEnd={<IconLock />}
             onClick={() => {
               if (connectionError) {
                 void reload();
@@ -504,98 +325,40 @@ export function MesaApp({
               setSheet("method");
             }}
           >
-            <span>
-              {connectionError ? "Reintentar" : sending ? "Creando cobro…" : quote.ok ? `Pagar ${formatMXN(quote.sum)}` : "Pagar"}
-            </span>
-            <IconLock />
-          </button>
-          <p className="assure">Pagas desde la app de tu banco. Sin comisión.</p>
-        </div>
+            {connectionError
+              ? "Reintentar"
+              : sending
+                ? "Creando cobro…"
+                : quote.ok
+                  ? `Pagar ${formatMXN(quote.sum)}`
+                  : "Pagar"}
+          </Button>
+          <p className="m-0 text-center text-[12.5px] text-muted">
+            Pagas desde la app de tu banco. Sin comisión.
+          </p>
+        </FooterBar>
       ) : null}
-      {sheet === "method" ? (
-        <BottomSheet title="¿Cómo quieres pagar?" onClose={() => setSheet(null)}>
-          <button className="opt" type="button" onClick={() => setSheet("phone")}>
-            <span className="ic">
-              <IconPhone />
-            </span>
-            <span>
-              <b>Cobro a mi celular</b>
-              <small>Te llega a la app de tu banco</small>
-            </span>
-            <span className="go">
-              <IconGo />
-            </span>
-          </button>
-          <button className="opt" type="button" disabled={sending} onClick={() => void createCharge("qr")}>
-            <span className="ic">
-              <IconQr />
-            </span>
-            <span>
-              <b>Código QR</b>
-              <small>Para guardarlo o escanearlo</small>
-            </span>
-            <span className="go">
-              <IconGo />
-            </span>
-          </button>
-          <SheetCancel />
-        </BottomSheet>
-      ) : null}
-      {sheet === "phone" ? (
-        <BottomSheet title="¿A qué celular enviamos el cobro?" onClose={() => setSheet(null)}>
-          <p>El que tienes registrado en tu banco. Solo lo usamos para este cobro y no lo guardamos.</p>
-          <div className="input">
-            <input
-              className="num"
-              inputMode="numeric"
-              autoComplete="tel-national"
-              maxLength={10}
-              placeholder="10 dígitos"
-              aria-label="Celular a 10 dígitos"
-              value={phone}
-              onChange={(event) => setPhone(event.target.value.replace(/\D/g, "").slice(0, 10))}
-            />
-          </div>
-          {formError ? (
-            <p className="msg-err" role="alert">
-              {formError}
-            </p>
-          ) : null}
-          <button
-            className="btn primary"
-            type="button"
-            disabled={!/^\d{10}$/.test(phone) || sending}
-            onClick={() => void createCharge("pn", phone)}
-          >
-            {sending ? "Enviando cobro…" : `Enviar cobro de ${formatMXN(quote.sum)}`}
-          </button>
-          <SheetCancel />
-        </BottomSheet>
-      ) : null}
-    </div>
-  );
-}
 
-function Simulate({ paymentId }: { paymentId: number }) {
-  const [busy, setBusy] = useState(false);
-  return (
-    <div className="demo">
-      <p>Solo para demostración. Aquí la persona paga en su banco.</p>
-      <button
-        type="button"
-        disabled={busy}
-        onClick={async () => {
-          setBusy(true);
-          await fetch("/api/dev/simulate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ paymentId }),
-          });
-          setBusy(false);
-        }}
-      >
-        Simular pago
-      </button>
-    </div>
+      {sheet === "method" ? (
+        <PaymentMethodSheet
+          sending={sending}
+          onClose={() => setSheet(null)}
+          onSelectPhone={() => setSheet("phone")}
+          onSelectQr={() => void createCharge("qr")}
+        />
+      ) : null}
+
+      {sheet === "phone" ? (
+        <PhoneChargeSheet
+          phone={phone}
+          totalCents={quote.sum}
+          error={formError}
+          sending={sending}
+          onPhoneChange={setPhone}
+          onSubmit={() => void createCharge("pn", phone)}
+          onClose={() => setSheet(null)}
+        />
+      ) : null}
+    </DinerShell>
   );
 }
