@@ -37,15 +37,15 @@ export function EmptyState({
             {icon}
           </div>
         ) : (
-          <div className="grid h-14 w-14 place-items-center rounded-xl bg-surface text-primary shadow-card">
+          <div className="glass grid h-[84px] w-[84px] place-items-center rounded-full text-accent">
             {icon}
           </div>
         )
       ) : null}
-      <p className="m-0 text-[20px] font-semibold leading-[1.25] tracking-[-0.02em] text-ink">
+      <p className="m-0 text-[26px] font-bold leading-[1.2] tracking-[-0.025em] text-fg text-balance">
         {title}
       </p>
-      {description ? <p className="m-0">{description}</p> : null}
+      {description ? <p className="m-0 max-w-[30ch] text-[15.5px] text-fg2">{description}</p> : null}
       {children}
     </div>
   );

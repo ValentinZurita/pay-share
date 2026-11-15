@@ -6,7 +6,7 @@ export type BannerVariant = "warn" | "error" | "info";
 const BANNER_VARIANTS: Record<BannerVariant, string> = {
   warn: "bg-warn-bg text-warn",
   error: "bg-warn-bg text-danger",
-  info: "bg-primary-tint text-primary-press",
+  info: "bg-accent-tint text-accent",
 };
 
 /**
@@ -21,7 +21,7 @@ export function Banner({
     <p
       role="alert"
       className={cn(
-        "m-0 rounded-lg px-3 py-2.5 text-[13.5px] font-medium",
+        "m-0 rounded-2xl px-3.5 py-2.5 text-[14px] font-medium",
         BANNER_VARIANTS[variant],
         className,
       )}

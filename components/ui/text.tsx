@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 export function PageTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h1
-      className={cn("m-0 text-[24px] font-bold tracking-[-0.03em] text-ink", className)}
+      className={cn("m-0 text-[32px] font-bold leading-[1.1] tracking-[-0.03em] text-fg", className)}
       {...props}
     />
   );
@@ -18,7 +18,7 @@ export function PageTitle({ className, ...props }: HTMLAttributes<HTMLHeadingEle
  */
 export function LabelText({ className, ...props }: HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p className={cn("m-0 text-[13px] font-medium text-muted", className)} {...props} />
+    <p className={cn("m-0 text-[14px] font-medium text-fg2", className)} {...props} />
   );
 }
 
@@ -27,7 +27,7 @@ export function LabelText({ className, ...props }: HTMLAttributes<HTMLParagraphE
  */
 export function MutedNote({ className, ...props }: HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p className={cn("m-0 px-0.5 py-1 text-[13.5px] text-muted", className)} {...props} />
+    <p className={cn("m-0 px-0.5 py-1 text-[14.5px] text-fg2", className)} {...props} />
   );
 }
 

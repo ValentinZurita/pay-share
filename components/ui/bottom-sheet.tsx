@@ -144,7 +144,7 @@ export function BottomSheet({
     <div
       ref={scrimRef}
       onClick={dismiss}
-      className="fixed inset-x-0 top-0 z-30 flex h-(--app-height,100dvh) items-end justify-center bg-[rgba(10,37,64,0.45)] animate-[fade_0.24s_ease-out] md:items-center md:p-6"
+      className="ps-scrim fixed inset-0 z-30 flex items-end justify-center p-2 animate-[fade_0.35s_ease-out]"
     >
       <div
         role="dialog"
@@ -154,10 +154,8 @@ export function BottomSheet({
         style={{ transform: `translateY(${shift})` }}
         onClick={(event) => event.stopPropagation()}
         className={cn(
-          "flex max-h-[min(92%,100%)] w-full flex-col gap-4 overflow-y-auto overscroll-contain rounded-t-[28px] bg-surface px-5 pt-2 pb-[calc(12px+env(safe-area-inset-bottom))] shadow-[0_-16px_48px_rgba(10,37,64,0.18)] will-change-transform md:w-[min(100%,460px)] md:rounded-2xl md:px-6 md:pt-5 md:pb-6 md:shadow-[var(--sh-2),0_20px_48px_rgba(10,37,64,0.2)]",
-          dragging
-            ? "transition-none"
-            : "transition-transform duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)]",
+          "ps-sheet-panel flex max-h-[min(92%,100%)] w-full max-w-[440px] flex-col gap-3.5 overflow-y-auto overscroll-contain rounded-[38px] px-[18px] pt-2 pb-[calc(18px+env(safe-area-inset-bottom))] will-change-transform",
+          dragging ? "transition-none" : "transition-transform duration-500 ease-(--ease)",
         )}
       >
         <div
@@ -165,10 +163,13 @@ export function BottomSheet({
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
-          className="-mx-5 flex touch-none cursor-grab flex-col items-center gap-3 px-5 pt-1.5 active:cursor-grabbing md:cursor-default md:pt-0 md:active:cursor-default"
+          className="flex touch-none cursor-grab flex-col items-center gap-3 pt-1.5 active:cursor-grabbing"
         >
-          <span className="h-[5px] w-9 rounded-full bg-line-strong md:hidden" />
-          <h2 id="sheet-title" className="m-0 self-stretch text-[20px] font-semibold tracking-[-0.03em] text-ink">
+          <span className="h-[5px] w-9 rounded-full bg-line-strong" />
+          <h2
+            id="sheet-title"
+            className="m-0 self-stretch text-center text-[21px] font-bold tracking-[-0.02em] text-balance text-fg"
+          >
             {title}
           </h2>
         </div>

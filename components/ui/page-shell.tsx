@@ -12,7 +12,7 @@ export function DinerShell({
   return (
     <div
       className={cn(
-        "mx-auto flex h-(--app-height,100dvh) w-full max-w-[440px] flex-col overflow-hidden bg-bg",
+        "ps-shell mx-auto flex h-(--app-height,100dvh) w-full max-w-[440px] flex-col overflow-hidden bg-bg",
         className,
       )}
       {...props}
@@ -34,8 +34,8 @@ export function ScrollBody({
   return (
     <div
       className={cn(
-        "flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto",
-        padding === "default" && "px-5 pt-1.5 pb-5 max-[380px]:px-4",
+        "ps-scroll flex min-h-0 flex-1 flex-col gap-[22px] overflow-y-auto",
+        padding === "default" && "px-4 pt-2 pb-5",
         className,
       )}
       {...props}
@@ -56,11 +56,9 @@ export function FooterBar({
 }: HTMLAttributes<HTMLDivElement> & { tone?: "surface" | "integrated" }) {
   return (
     <div
+      data-tone={tone}
       className={cn(
-        "flex flex-none flex-col gap-2.5 px-5 pt-3.5 pb-[calc(16px+env(safe-area-inset-bottom))] max-[380px]:px-4",
-        tone === "integrated"
-          ? "bg-surface shadow-[0_-1px_0_var(--line)] min-[480px]:border-t min-[480px]:border-line/80 min-[480px]:bg-bg/90 min-[480px]:shadow-none min-[480px]:backdrop-blur-md"
-          : "bg-surface shadow-[0_-1px_0_var(--line)]",
+        "ps-footer flex flex-none flex-col gap-2 px-4 pt-3 pb-[calc(22px+env(safe-area-inset-bottom))]",
         className,
       )}
       {...props}

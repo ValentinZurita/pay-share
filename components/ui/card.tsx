@@ -9,9 +9,9 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const CARD_VARIANTS: Record<CardVariant, string> = {
-  elevated: "bg-surface rounded-xl shadow-card",
-  bordered: "bg-surface rounded-xl border border-line",
-  dashed: "bg-surface rounded-2xl border border-dashed border-line-strong",
+  elevated: "ps-card",
+  bordered: "ps-card-solid",
+  dashed: "ps-card-dashed",
 };
 
 /**
@@ -21,9 +21,8 @@ export function Card({ variant = "elevated", selected = false, className, ...pro
   return (
     <div
       className={cn(
-        variant === "elevated" && selected
-          ? "bg-surface rounded-xl shadow-focus"
-          : CARD_VARIANTS[variant],
+        CARD_VARIANTS[variant],
+        selected && "shadow-focus",
         className,
       )}
       {...props}

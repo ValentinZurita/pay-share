@@ -25,7 +25,7 @@ export function Field({
   const labelContent = label ? (
     <>
       {label}
-      {hint ? <span className="font-normal text-muted"> {hint}</span> : null}
+      {hint ? <span className="font-normal text-fg3"> {hint}</span> : null}
     </>
   ) : null;
 
@@ -35,11 +35,11 @@ export function Field({
         <div className="flex items-baseline justify-between gap-2">
           {labelContent ? (
             htmlFor ? (
-              <label htmlFor={htmlFor} className="text-[13.5px] font-medium text-ink">
+              <label htmlFor={htmlFor} className="text-[14px] font-medium text-fg2">
                 {labelContent}
               </label>
             ) : (
-              <span className="text-[13.5px] font-medium text-ink">{labelContent}</span>
+              <span className="text-[14px] font-medium text-fg2">{labelContent}</span>
             )
           ) : (
             <span />
@@ -75,22 +75,19 @@ export function TextInput({
 }: TextInputProps) {
   return (
     <div
-      className={cn(
-        "flex h-[50px] items-center gap-2 rounded-lg bg-surface px-3.5 shadow-card transition-shadow duration-150 ease-(--ease) hover:shadow-card-hover focus-within:shadow-focus",
-        invalid && "shadow-focus-danger hover:shadow-focus-danger focus-within:shadow-focus-danger",
-        className,
-      )}
+      data-invalid={invalid ? "true" : undefined}
+      className={cn("ps-field", className)}
     >
-      {prefix ? <span className="text-[17px] text-muted select-none">{prefix}</span> : null}
+      {prefix ? <span className="text-[17px] text-fg3 select-none">{prefix}</span> : null}
       <input
         className={cn(
-          "min-w-0 flex-1 border-0 bg-transparent p-0 tracking-[-0.01em] text-ink shadow-none outline-none placeholder:font-normal placeholder:text-muted placeholder:opacity-70 focus-visible:shadow-none num",
-          textSize === "md" ? "text-[16px] font-medium" : "text-[18px] font-semibold",
+          "min-w-0 flex-1 border-0 bg-transparent p-0 text-[16px] tracking-[-0.01em] text-fg shadow-none outline-none placeholder:font-normal placeholder:text-fg3 focus-visible:shadow-none num",
+          textSize === "md" ? "font-medium" : "font-semibold",
           inputClassName,
         )}
         {...props}
       />
-      {suffix ? <span className="text-[12.5px] font-medium text-muted select-none">{suffix}</span> : null}
+      {suffix ? <span className="text-[12.5px] font-medium text-fg3 select-none">{suffix}</span> : null}
     </div>
   );
 }

@@ -17,14 +17,14 @@ export function StatusPill({
     <span
       role="status"
       className={cn(
-        "inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full bg-surface px-3.5 py-1.5 text-center text-[13.5px] font-medium text-ink shadow-card",
+        "glass inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full px-3.5 py-2 text-center text-[14px] font-medium text-fg",
         className,
       )}
     >
       {loading ? (
         <span
           aria-hidden="true"
-          className="h-[13px] w-[13px] shrink-0 animate-spin rounded-full border-2 border-line-strong border-t-primary"
+          className="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-line-strong border-t-fg"
         />
       ) : null}
       {children}

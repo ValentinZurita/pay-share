@@ -13,26 +13,25 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
-    "bg-primary text-on-primary shadow-btn hover:-translate-y-[0.5px] hover:bg-primary-press disabled:bg-primary-mid disabled:shadow-none disabled:cursor-default disabled:hover:translate-y-0 disabled:active:scale-100",
-  secondary:
-    "bg-surface text-ink shadow-card hover:-translate-y-[0.5px] hover:shadow-card-hover disabled:opacity-60 disabled:cursor-default disabled:hover:translate-y-0 disabled:active:scale-100",
-  quiet:
-    "bg-transparent text-muted font-medium shadow-none hover:bg-bg/70 hover:text-ink disabled:opacity-50 disabled:cursor-default",
-  surface:
-    "bg-surface text-ink shadow-card hover:-translate-y-[0.5px] hover:shadow-card-hover",
-  ghost:
-    "bg-transparent text-muted hover:bg-bg hover:text-ink",
+    "bg-btn text-on-btn shadow-btn disabled:bg-fill disabled:text-fg3 disabled:shadow-none",
+  secondary: "bg-fill text-accent disabled:opacity-50",
+  quiet: "bg-transparent text-accent font-medium disabled:opacity-50",
+  surface: "bg-fill text-fg",
+  ghost: "bg-transparent text-fg2 hover:bg-fill hover:text-fg",
 };
 
-const SIZE_CLASSES: Record<ButtonSize, string> = {
-  default: "min-h-12 px-4 text-[16px] font-semibold tracking-[-0.01em] rounded-lg",
-  compact: "min-h-10 px-3.5 text-[14px] font-semibold tracking-[-0.01em] rounded-lg",
-  icon: "w-11 h-11 rounded-lg shrink-0",
-  "icon-sm": "w-9 h-9 rounded-lg shrink-0",
-};
+function sizeClass(variant: ButtonVariant, size: ButtonSize): string {
+  if (size === "icon") return "h-11 w-11 rounded-full shrink-0";
+  if (size === "icon-sm") return "h-9 w-9 rounded-full shrink-0";
+  if (size === "compact") {
+    return "min-h-10 px-3.5 text-[15px] font-semibold tracking-[-0.01em] rounded-full";
+  }
+  if (variant === "quiet") return "min-h-11 px-4 text-[17px] rounded-full";
+  return "min-h-[54px] px-4 text-[17px] font-semibold tracking-[-0.01em] rounded-full";
+}
 
 /**
- * Shared button primitive with consistent sizing, focus rings, and variants.
+ * Shared pill button with elastic press and the reference variants.
  */
 export function Button({
   variant = "primary",
@@ -48,9 +47,9 @@ export function Button({
     <button
       type={type}
       className={cn(
-        "relative inline-flex items-center justify-center gap-2 transition-[background,box-shadow,transform,color] duration-150 ease-(--ease) active:scale-[0.985] select-none",
+        "relative inline-flex items-center justify-center gap-2 border-0 transition-transform duration-[250ms] ease-(--ease) select-none active:scale-[0.97] disabled:cursor-default disabled:active:scale-100",
         VARIANT_CLASSES[variant],
-        SIZE_CLASSES[size],
+        sizeClass(variant, size),
         fullWidth && "w-full",
         className,
       )}
@@ -58,7 +57,7 @@ export function Button({
     >
       {children}
       {iconEnd ? (
-        <span className="absolute right-4 inline-flex items-center opacity-75" aria-hidden="true">
+        <span className="pointer-events-none absolute right-4 inline-flex items-center opacity-75" aria-hidden="true">
           {iconEnd}
         </span>
       ) : null}

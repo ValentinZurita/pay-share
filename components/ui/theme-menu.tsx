@@ -49,7 +49,8 @@ export function ThemeMenu() {
     <DropdownMenu
       label="Tema"
       items={OPTIONS.map((option) => ({
-        label: option.id === theme ? `${option.label} ✓` : option.label,
+        label: option.label,
+        selected: option.id === theme,
         onSelect: () => {
           applyTheme(option.id);
           setTheme(option.id);
