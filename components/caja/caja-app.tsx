@@ -1,42 +1,53 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { AccountCard } from "@/components/ui/account-card";
-import { BottomSheet, SheetCancel } from "@/components/ui/bottom-sheet";
-import { IconBack, IconMore } from "@/components/ui/icons";
-import { QrImage } from "@/components/ui/qr-image";
-import { formatMXN, parsePesosToCents, sanitizePesosInput } from "@/lib/money";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { TableDetail } from "@/components/caja/table-detail";
+import { TableGrid } from "@/components/caja/table-grid";
+import {
+  BillAmountSheet,
+  CloseTableSheet,
+  RemoveTableSheet,
+  ShareTableSheet,
+} from "@/components/caja/table-sheets";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/cn";
+import { formatMXN, parsePesosToCents } from "@/lib/money";
 import type { Snapshot } from "@/lib/types";
 import { useLiveSnapshot } from "@/lib/use-live-snapshot";
+
+type Sheet = null | "open" | "close" | "share" | "remove" | "edit";
+
+const emptySubscribe = () => () => {};
+
+function useOrigin() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => window.location.origin,
+    () => "",
+  );
+}
 
 export function CajaApp({ initial }: { initial: Snapshot[] }) {
   const live = useLiveSnapshot(null, initial);
   const tables = (Array.isArray(live.data) ? live.data : initial) as Snapshot[];
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [mobileDetail, setMobileDetail] = useState(false);
-  const [sheet, setSheet] = useState<null | "open" | "close" | "share" | "remove" | "edit">(null);
+  const [sheet, setSheet] = useState<Sheet>(null);
   const [total, setTotal] = useState("");
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
-  const [origin, setOrigin] = useState("");
   const [copied, setCopied] = useState(false);
-  const [menu, setMenu] = useState(false);
-  const [cardMenuId, setCardMenuId] = useState<number | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const cardMenuRef = useRef<HTMLDivElement>(null);
   const seen = useRef<Set<number>>(new Set());
   const ready = useRef(false);
   const [fresh, setFresh] = useState<Set<number>>(new Set());
-
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
+  const origin = useOrigin();
 
   const selected = tables.find((table) => table.table.id === selectedId) ?? null;
 
   useEffect(() => {
     const ids = tables.flatMap(
-      (table) => table.bill?.payments.filter((payment) => payment.status === "paid").map((payment) => payment.id) ?? [],
+      (table) =>
+        table.bill?.payments.filter((payment) => payment.status === "paid").map((payment) => payment.id) ?? [],
     );
     if (!ready.current) {
       ids.forEach((id) => seen.current.add(id));
@@ -57,7 +68,6 @@ export function CajaApp({ initial }: { initial: Snapshot[] }) {
     setError("");
     setTotal("");
     setCopied(false);
-    setMenu(false);
     if (!table?.bill) {
       setSheet("open");
       setMobileDetail(false);
@@ -67,35 +77,50 @@ export function CajaApp({ initial }: { initial: Snapshot[] }) {
     setMobileDetail(true);
   }
 
-  async function submitOpen(event?: React.FormEvent) {
-    event?.preventDefault();
-    if (!selectedId || sending) return;
-    let cents = 0;
+  function parseTotalOrError(): number | null {
     try {
-      cents = parsePesosToCents(total);
+      const cents = parsePesosToCents(total);
+      if (cents <= 0) {
+        setError("Escribe el total, por ejemplo 500.");
+        return null;
+      }
+      return cents;
     } catch {
       setError("Escribe el total, por ejemplo 500.");
-      return;
+      return null;
     }
-    if (cents <= 0) {
-      setError("Escribe el total, por ejemplo 500.");
-      return;
-    }
+  }
+
+  async function submitBillAmount(mode: "open" | "edit", event: React.FormEvent) {
+    event.preventDefault();
+    if (sending) return;
+    if (mode === "open" && !selectedId) return;
+    if (mode === "edit" && !selected?.bill) return;
+
+    const cents = parseTotalOrError();
+    if (cents == null) return;
+
     setSending(true);
     setError("");
     try {
-      const response = await fetch("/api/bills", {
-        method: "POST",
+      const url = mode === "open" ? "/api/bills" : `/api/bills/${selected!.bill!.id}`;
+      const method = mode === "open" ? "POST" : "PATCH";
+      const payload = mode === "open" ? { tableId: selectedId, totalCents: cents } : { totalCents: cents };
+
+      const response = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tableId: selectedId, totalCents: cents }),
+        body: JSON.stringify(payload),
       });
       const body = (await response.json()) as { error?: string };
       if (!response.ok) {
-        setError(body.error ?? "No pudimos abrir la cuenta.");
+        setError(
+          body.error ?? (mode === "open" ? "No pudimos abrir la cuenta." : "No pudimos guardar el monto."),
+        );
         return;
       }
       setSheet(null);
-      setMobileDetail(true);
+      if (mode === "open") setMobileDetail(true);
       await live.reload();
     } catch {
       setError("No pudimos conectar. Revisa tu internet e inténtalo de nuevo.");
@@ -124,96 +149,6 @@ export function CajaApp({ initial }: { initial: Snapshot[] }) {
     }
   }
 
-  useEffect(() => {
-    if (!menu && cardMenuId == null) return;
-    function onPointer(event: PointerEvent) {
-      const target = event.target;
-      if (!(target instanceof Node)) return;
-      if (menuRef.current?.contains(target) || cardMenuRef.current?.contains(target)) return;
-      setMenu(false);
-      setCardMenuId(null);
-    }
-    function onKey(event: KeyboardEvent) {
-      if (event.key !== "Escape") return;
-      setMenu(false);
-      setCardMenuId(null);
-    }
-    document.addEventListener("pointerdown", onPointer);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("pointerdown", onPointer);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [menu, cardMenuId]);
-
-  const mesaUrl = selected && origin ? `${origin}/mesa/${selected.table.id}` : "";
-
-  async function shareLink() {
-    if (!selected || !mesaUrl) return;
-    const payload = {
-      title: selected.table.name,
-      text: `Paga tu parte en ${selected.table.name}`,
-      url: mesaUrl,
-    };
-    try {
-      if (navigator.share) {
-        await navigator.share(payload);
-        return;
-      }
-      await navigator.clipboard.writeText(mesaUrl);
-      setCopied(true);
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") return;
-      try {
-        await navigator.clipboard.writeText(mesaUrl);
-        setCopied(true);
-      } catch {
-        setError("No pudimos compartir el enlace.");
-      }
-    }
-  }
-
-  const mesaMenu = (
-    <div className="more" ref={menuRef}>
-      <button
-        className="backb"
-        type="button"
-        aria-label="Opciones de la mesa"
-        aria-expanded={menu}
-        aria-haspopup="menu"
-        onClick={() => setMenu((open) => !open)}
-      >
-        <IconMore />
-      </button>
-      {menu ? (
-        <div className="more-menu" role="menu">
-          <button
-            role="menuitem"
-            type="button"
-            onClick={() => {
-              setMenu(false);
-              setSheet("share");
-            }}
-          >
-            Ver código
-          </button>
-          <button
-            role="menuitem"
-            type="button"
-            onClick={() => {
-              setMenu(false);
-              void shareLink();
-            }}
-          >
-            Enviar enlace
-          </button>
-        </div>
-      ) : null}
-    </div>
-  );
-
-  const showDetail = Boolean(selected?.bill) && mobileDetail;
-
   async function addTable() {
     if (sending) return;
     setSending(true);
@@ -225,63 +160,6 @@ export function CajaApp({ initial }: { initial: Snapshot[] }) {
         setError(body.error ?? "No pudimos agregar la mesa.");
         return;
       }
-      await live.reload();
-    } catch {
-      setError("No pudimos conectar. Revisa tu internet e inténtalo de nuevo.");
-    } finally {
-      setSending(false);
-    }
-  }
-
-  function editAmount(table: Snapshot) {
-    setCardMenuId(null);
-    setSelectedId(table.table.id);
-    setError("");
-    setMobileDetail(false);
-    if (!table.bill) {
-      setTotal("");
-      setSheet("open");
-      return;
-    }
-    setTotal((table.bill.totalCents / 100).toFixed(2));
-    setSheet("edit");
-  }
-
-  function askRemove(table: Snapshot) {
-    setCardMenuId(null);
-    setSelectedId(table.table.id);
-    setError("");
-    setSheet("remove");
-  }
-
-  async function submitEdit(event?: React.FormEvent) {
-    event?.preventDefault();
-    if (!selected?.bill || sending) return;
-    let cents = 0;
-    try {
-      cents = parsePesosToCents(total);
-    } catch {
-      setError("Escribe el total, por ejemplo 500.");
-      return;
-    }
-    if (cents <= 0) {
-      setError("Escribe el total, por ejemplo 500.");
-      return;
-    }
-    setSending(true);
-    setError("");
-    try {
-      const response = await fetch(`/api/bills/${selected.bill.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ totalCents: cents }),
-      });
-      const body = (await response.json()) as { error?: string };
-      if (!response.ok) {
-        setError(body.error ?? "No pudimos guardar el monto.");
-        return;
-      }
-      setSheet(null);
       await live.reload();
     } catch {
       setError("No pudimos conectar. Revisa tu internet e inténtalo de nuevo.");
@@ -312,127 +190,32 @@ export function CajaApp({ initial }: { initial: Snapshot[] }) {
     }
   }
 
-  const list = (
-    <div className="body">
-      <div className="list-head">
-        <h1 className="h-page">Mesas</h1>
-        <button className="btn secondary compact" type="button" disabled={sending} onClick={() => void addTable()}>
-          Nueva mesa
-        </button>
-      </div>
-      {error && !showDetail ? (
-        <p className="banner" role="alert">
-          {error}
-        </p>
-      ) : null}
-      {live.error ? (
-        <p className="banner" role="alert">
-          {live.error}
-        </p>
-      ) : null}
-      {tables.length === 0 ? <p className="empty-note">No hay mesas. Agrega la primera.</p> : null}
-      <div className="grid">
-        {tables.map((table) => {
-          const open = table.bill;
-          const covered = open ? open.remainingCents === 0 : false;
-          const menuOpen = cardMenuId === table.table.id;
-          return (
-            <div
-              key={table.table.id}
-              className={selectedId === table.table.id ? "card mesa selected" : "card mesa"}
-            >
-              <button className="mesa-main" type="button" onClick={() => openTable(table.table.id)}>
-                <span className="mesa-id">
-                  <b>{table.table.name}</b>
-                  {!open ? (
-                    <span className="badge neutral">Libre</span>
-                  ) : covered ? (
-                    <span className="badge ok">Cubierta</span>
-                  ) : (
-                    <span className="badge info">Abierta</span>
-                  )}
-                </span>
-                {open ? (
-                  <span>
-                    <span className="amt num">{formatMXN(open.remainingCents)}</span>
-                    <small>restante de {formatMXN(open.totalCents)}</small>
-                  </span>
-                ) : null}
-              </button>
-              <div className="mesa-more" ref={menuOpen ? cardMenuRef : undefined}>
-                <button
-                  className="mesa-dots"
-                  type="button"
-                  aria-label={`Opciones de ${table.table.name}`}
-                  aria-expanded={menuOpen}
-                  aria-haspopup="menu"
-                  onClick={() => setCardMenuId(menuOpen ? null : table.table.id)}
-                >
-                  <IconMore />
-                </button>
-                {menuOpen ? (
-                  <div className="more-menu" role="menu">
-                    <button role="menuitem" type="button" onClick={() => editAmount(table)}>
-                      Editar monto
-                    </button>
-                    <button role="menuitem" type="button" onClick={() => askRemove(table)}>
-                      Eliminar mesa
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+  const mesaUrl = selected && origin ? `${origin}/mesa/${selected.table.id}` : "";
 
-  const detail = selected?.bill ? (
-    <div className="caja-detail">
-      <div className="bar detail-bar">
-        <button className="backb" type="button" aria-label="Volver a las mesas" onClick={() => setMobileDetail(false)}>
-          <IconBack />
-        </button>
-        <h1 className="detail-title">
-          {selected.table.name}
-          <small>Cuenta {selected.bill.id}</small>
-        </h1>
-        {mesaMenu}
-      </div>
-      <div className="body">
-        {copied ? (
-          <p className="empty-note" role="status">
-            Enlace copiado.
-          </p>
-        ) : null}
-        <AccountCard bill={selected.bill} restLabel="Restante en efectivo" staff freshIds={fresh} />
-        {selected.bill.payments.length === 0 ? (
-          <p className="empty-note">Aún no entra ningún pago. Aparecen aquí solos.</p>
-        ) : null}
-        <div className="card kv">
-          <div>
-            <span>Pagado por transferencia</span>
-            <span className="num">{formatMXN(selected.bill.paidCents)}</span>
-          </div>
-          <div className="t">
-            <span>Propinas, aparte</span>
-            <span className="num">{formatMXN(selected.bill.tipsCents)}</span>
-          </div>
-        </div>
-      </div>
-      <div className="foot">
-        {error && sheet !== "close" ? (
-          <p className="msg-err" role="alert">
-            {error}
-          </p>
-        ) : null}
-        <button className="btn secondary" type="button" onClick={() => setSheet("close")}>
-          Cerrar mesa
-        </button>
-      </div>
-    </div>
-  ) : null;
+  async function shareLink() {
+    if (!selected || !mesaUrl) return;
+    const payload = {
+      title: selected.table.name,
+      text: `Paga tu parte en ${selected.table.name}`,
+      url: mesaUrl,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(payload);
+        return;
+      }
+      await navigator.clipboard.writeText(mesaUrl);
+      setCopied(true);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      try {
+        await navigator.clipboard.writeText(mesaUrl);
+        setCopied(true);
+      } catch {
+        setError("No pudimos compartir el enlace.");
+      }
+    }
+  }
 
   const closeCopy = useMemo(() => {
     if (!selected?.bill) return "";
@@ -442,132 +225,109 @@ export function CajaApp({ initial }: { initial: Snapshot[] }) {
     return "La cuenta está cubierta. La mesa quedará libre.";
   }, [selected]);
 
+  const showDetail = Boolean(selected?.bill) && mobileDetail;
+
   return (
-    <div className="caja-page">
-      <div className={showDetail ? "caja-split is-detail" : "caja-split"}>
-        <div className="caja-pane-list">{list}</div>
-        <div className="caja-pane-detail">
-          {detail ?? <p className="empty-note caja-empty">Elige una mesa para ver la cuenta.</p>}
+    <div className="mx-auto flex h-(--app-height,100dvh) w-full max-w-[1360px] flex-col overflow-hidden bg-bg">
+      <div className="flex min-h-0 flex-1 flex-col min-[900px]:grid min-[900px]:grid-cols-[minmax(0,1fr)_400px] min-[900px]:grid-rows-[minmax(0,1fr)] min-[900px]:items-stretch min-[900px]:gap-7 min-[900px]:p-6 min-[900px]:px-7 min-[900px]:pb-7 min-[1200px]:grid-cols-[minmax(0,1fr)_440px] min-[1200px]:gap-8 min-[1200px]:px-9 min-[1200px]:pt-7 min-[1200px]:pb-8">
+        <div className={cn("min-h-0 min-w-0 flex-1 flex-col min-[900px]:flex", showDetail ? "hidden" : "flex")}>
+          <TableGrid
+            tables={tables}
+            selectedId={selectedId}
+            sending={sending}
+            error={error && !showDetail ? error : ""}
+            liveError={live.error}
+            onAddTable={() => void addTable()}
+            onSelectTable={openTable}
+            onEditAmount={(table) => {
+              setSelectedId(table.table.id);
+              setError("");
+              setMobileDetail(false);
+              if (!table.bill) {
+                setTotal("");
+                setSheet("open");
+                return;
+              }
+              setTotal((table.bill.totalCents / 100).toFixed(2));
+              setSheet("edit");
+            }}
+            onRemoveTable={(table) => {
+              setSelectedId(table.table.id);
+              setError("");
+              setSheet("remove");
+            }}
+          />
+        </div>
+
+        <div className={cn("min-h-0 min-w-0 flex-1 flex-col min-[900px]:flex", showDetail ? "flex" : "hidden")}>
+          {selected?.bill ? (
+            <TableDetail
+              table={selected.table}
+              bill={selected.bill}
+              freshIds={fresh}
+              copied={copied}
+              error={error && sheet !== "close" ? error : ""}
+              onBack={() => setMobileDetail(false)}
+              onShowShare={() => setSheet("share")}
+              onShareLink={() => void shareLink()}
+              onRequestClose={() => setSheet("close")}
+            />
+          ) : (
+            <Card
+              variant="dashed"
+              className="m-0 grid h-full place-items-center p-8 text-center text-[13.5px] text-muted"
+            >
+              Elige una mesa para ver la cuenta.
+            </Card>
+          )}
         </div>
       </div>
-      {sheet === "open" && selected ? (
-        <BottomSheet title={`Abrir cuenta · ${selected.table.name}`} onClose={() => setSheet(null)}>
-          <form
-            onSubmit={(event) => void submitOpen(event)}
-            style={{ display: "flex", flexDirection: "column", gap: 14 }}
-          >
-            <div className="field">
-              <label htmlFor="bill-total">Total de la cuenta</label>
-              <div className={error ? "input bad" : "input"}>
-                <span className="currency">$</span>
-                <input
-                  id="bill-total"
-                  type="text"
-                  inputMode="decimal"
-                  autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="off"
-                  spellCheck={false}
-                  placeholder="0.00"
-                  value={total}
-                  enterKeyHint="done"
-                  onChange={(event) => {
-                    setTotal(sanitizePesosInput(event.target.value));
-                    setError("");
-                  }}
-                />
-                <em>MXN</em>
-              </div>
-              {error ? (
-                <p className="msg-err" role="alert">
-                  {error}
-                </p>
-              ) : null}
-            </div>
-            <button className="btn primary" type="submit" disabled={sending}>
-              {sending ? "Abriendo cuenta…" : "Abrir cuenta"}
-            </button>
-            <SheetCancel />
-          </form>
-        </BottomSheet>
+
+      {(sheet === "open" || sheet === "edit") && selected ? (
+        <BillAmountSheet
+          mode={sheet}
+          tableName={selected.table.name}
+          total={total}
+          error={error}
+          sending={sending}
+          onTotalChange={(value) => {
+            setTotal(value);
+            setError("");
+          }}
+          onSubmit={(event) => void submitBillAmount(sheet, event)}
+          onClose={() => setSheet(null)}
+        />
       ) : null}
+
       {sheet === "share" && selected && mesaUrl ? (
-        <BottomSheet title={`Código · ${selected.table.name}`} onClose={() => setSheet(null)}>
-          <div className="mesa-share">
-            <QrImage value={mesaUrl} label={`Código para abrir ${selected.table.name}`} />
-            <p className="mesa-url">{mesaUrl.replace(/^https?:\/\//, "")}</p>
-            <button className="btn primary" type="button" onClick={() => void shareLink()}>
-              {copied ? "Enlace copiado" : "Enviar enlace"}
-            </button>
-          </div>
-        </BottomSheet>
+        <ShareTableSheet
+          tableName={selected.table.name}
+          mesaUrl={mesaUrl}
+          copied={copied}
+          onShareLink={() => void shareLink()}
+          onClose={() => setSheet(null)}
+        />
       ) : null}
-      {sheet === "edit" && selected?.bill ? (
-        <BottomSheet title={`Editar monto · ${selected.table.name}`} onClose={() => setSheet(null)}>
-          <form onSubmit={(event) => void submitEdit(event)} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div className="field">
-              <label htmlFor="edit-total">Total de la cuenta</label>
-              <div className={error ? "input bad" : "input"}>
-                <span className="currency">$</span>
-                <input
-                  id="edit-total"
-                  type="text"
-                  inputMode="decimal"
-                  autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="off"
-                  spellCheck={false}
-                  placeholder="0.00"
-                  value={total}
-                  enterKeyHint="done"
-                  onChange={(event) => {
-                    setTotal(sanitizePesosInput(event.target.value));
-                    setError("");
-                  }}
-                />
-                <em>MXN</em>
-              </div>
-              {error ? (
-                <p className="msg-err" role="alert">
-                  {error}
-                </p>
-              ) : null}
-            </div>
-            <button className="btn primary" type="submit" disabled={sending}>
-              {sending ? "Guardando…" : "Guardar monto"}
-            </button>
-            <SheetCancel />
-          </form>
-        </BottomSheet>
-      ) : null}
+
       {sheet === "remove" && selected ? (
-        <BottomSheet title={`¿Eliminar la ${selected.table.name}?`} onClose={() => setSheet(null)}>
-          <p>
-            {selected.bill
-              ? "Esta mesa tiene una cuenta abierta. Ciérrala antes de quitarla."
-              : "Se borra esta mesa. Su código dejará de servir."}
-          </p>
-          {error ? (
-            <p className="msg-err" role="alert">
-              {error}
-            </p>
-          ) : null}
-          {selected.bill ? null : (
-            <button className="btn primary" type="button" disabled={sending} onClick={() => void submitDelete()}>
-              {sending ? "Eliminando mesa…" : "Sí, eliminar mesa"}
-            </button>
-          )}
-          <SheetCancel />
-        </BottomSheet>
+        <RemoveTableSheet
+          tableName={selected.table.name}
+          hasOpenBill={Boolean(selected.bill)}
+          error={error}
+          sending={sending}
+          onConfirm={() => void submitDelete()}
+          onClose={() => setSheet(null)}
+        />
       ) : null}
+
       {sheet === "close" && selected ? (
-        <BottomSheet title={`¿Cerrar la ${selected.table.name}?`} onClose={() => setSheet(null)}>
-          <p>{closeCopy}</p>
-          <button className="btn primary" type="button" disabled={sending} onClick={() => void submitClose()}>
-            {sending ? "Cerrando mesa…" : "Sí, cerrar mesa"}
-          </button>
-          <SheetCancel />
-        </BottomSheet>
+        <CloseTableSheet
+          tableName={selected.table.name}
+          copy={closeCopy}
+          sending={sending}
+          onConfirm={() => void submitClose()}
+          onClose={() => setSheet(null)}
+        />
       ) : null}
     </div>
   );

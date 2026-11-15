@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Field, TextInput } from "@/components/ui/input";
+import { LabelText } from "@/components/ui/text";
 
 export function LoginForm({ restaurant, nextPath }: { restaurant: string; nextPath: string }) {
   const router = useRouter();
@@ -35,31 +39,26 @@ export function LoginForm({ restaurant, nextPath }: { restaurant: string; nextPa
   }
 
   return (
-    <form className="card" onSubmit={(event) => void submit(event)}>
-      <p className="lbl">{restaurant}</p>
-      <h1>Caja</h1>
-      <div className="field">
-        <label htmlFor="pin">PIN</label>
-        <div className={error ? "input bad" : "input"}>
-          <input
+    <Card className="p-6">
+      <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-4">
+        <LabelText>{restaurant}</LabelText>
+        <h1 className="m-0 text-[22px] font-bold tracking-[-0.03em] text-ink">Caja</h1>
+        <Field label="PIN" htmlFor="pin" error={error || undefined}>
+          <TextInput
             id="pin"
             type="password"
             inputMode="numeric"
             autoComplete="current-password"
+            invalid={Boolean(error)}
             value={pin}
             autoFocus
             onChange={(event) => setPin(event.target.value)}
           />
-        </div>
-        {error ? (
-          <p className="msg-err" role="alert">
-            {error}
-          </p>
-        ) : null}
-      </div>
-      <button className="btn primary" type="submit" disabled={sending || pin.length === 0}>
-        {sending ? "Entrando…" : "Entrar"}
-      </button>
-    </form>
+        </Field>
+        <Button variant="primary" type="submit" disabled={sending || pin.length === 0}>
+          {sending ? "Entrando…" : "Entrar"}
+        </Button>
+      </form>
+    </Card>
   );
 }
