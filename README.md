@@ -43,8 +43,6 @@ Cuando una mesa paga por separado, la caja revisa transferencias a mano, la prop
 <img src="docs/img/caja.webp" width="100%" alt="La caja ve lo pagado, la propina aparte y lo que falta en efectivo" />
 <p align="center"><sub><b>4.</b> La caja se actualiza sola: pagado por transferencia, propinas aparte y restante en efectivo.</sub></p>
 
-El cajero abre la mesa con solo el total. Cada quien escanea el QR, paga lo suyo con CoDi y la caja ve el resto en efectivo.
-
 ## Cómo usa pey
 
 ```mermaid
@@ -69,11 +67,11 @@ sequenceDiagram
 ## Pruébalo
 
 1. Entra a la [caja](https://pay-share-one.vercel.app/caja) con el PIN `977564` y abre la **Mesa 4** con un total, por ejemplo `$500`.
-2. En el celular u otra pestaña abre la [Mesa 4](https://pay-share-one.vercel.app/mesa/4), escribe tu parte y la propina y paga.
+2. En el celular u otra pestaña abre la [Mesa 4](https://pay-share-one.vercel.app/mesa/4), escribe tu parte y la propina y paga con CoDi (se cobra solo $0.01 de prueba).
 3. Regresa a la caja: verás lo pagado, la propina aparte y lo que falta en efectivo.
 4. Cierra la mesa con **Cerrar mesa**.
 
-> ⚠️ **Honestidad ante todo:** la versión publicada corre con el pago **simulado** (botón *Simular pago*) porque la cuenta CLABE de pey tarda días en activarse. La integración real con pey ya está en el código; con `PEY_MODE=live` y una `PEY_API_KEY` cobra de verdad (`DEMO_MODE` limita el cobro a $0.01).
+> 💸 **Cobro real con pey:** la versión publicada usa la API de pey en producción (`PEY_MODE=live`). Para el demo, `DEMO_MODE` cobra **$0.01 MXN** por pago, sin importar el monto mostrado, a una cuenta de pruebas de pey (no se devuelve).
 
 ## Stack
 
@@ -98,7 +96,7 @@ Con Supabase, ejecuta [`supabase/migrations/0001_init.sql`](supabase/migrations/
 | `NEXT_PUBLIC_BASE_URL` | Dirección del sitio, sin barra final; va dentro de los QR |
 | `NEXT_PUBLIC_RESTAURANT_NAME` | Nombre que ve el comensal |
 | `PEY_MODE` | `live` para el API de pey; `mock` para probar sin banco |
-| `DEMO_MODE` | `true` cobra un monto mínimo de prueba; no lo pongas en `false` con la cuenta de prueba de pey |
+| `DEMO_MODE` | `true` cobra $0.01 de prueba (activo en la versión publicada); no lo pongas en `false` con la cuenta de prueba de pey |
 | `PEY_API_KEY` | Portal pey → Developer (secreta) |
 | `PEY_WEBHOOK_SECRET` | Secreto `whsec_…` del webhook (solo servidor) |
 | `CASHIER_PIN` | PIN de la caja; obligatorio en producción |
