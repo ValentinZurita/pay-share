@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { centsToPesos, formatMXN, parsePesosToCents, pesosMatchCents } from "@/lib/money";
+import { centsToPesos, formatMXN, parsePesosToCents, pesosMatchCents, sanitizePesosInput } from "@/lib/money";
 
 describe("parsePesosToCents", () => {
   it("convierte pesos con centavos", () => {
@@ -25,6 +25,21 @@ describe("parsePesosToCents", () => {
     expect(() => parsePesosToCents("1.234")).toThrow();
     expect(() => parsePesosToCents("12,34")).toThrow();
     expect(() => parsePesosToCents("")).toThrow();
+  });
+
+  it("acepta el punto final mientras se escribe el decimal", () => {
+    expect(parsePesosToCents("500.")).toBe(50000);
+  });
+});
+
+describe("sanitizePesosInput", () => {
+  it("quita letras y deja hasta dos decimales", () => {
+    expect(sanitizePesosInput("abc")).toBe("");
+    expect(sanitizePesosInput("50a0x")).toBe("500");
+    expect(sanitizePesosInput("500.509")).toBe("500.50");
+    expect(sanitizePesosInput("500,5")).toBe("500.5");
+    expect(sanitizePesosInput("$1,234.50")).toBe("1234.50");
+    expect(sanitizePesosInput("500.")).toBe("500.");
   });
 });
 

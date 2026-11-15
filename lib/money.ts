@@ -1,8 +1,38 @@
 const INVALID = "Escribe solo el monto, por ejemplo 300.";
 
+/** Deja solo dígitos y un decimal. Las letras no entran. La coma suelta cuenta como punto. */
+export function sanitizePesosInput(raw: string): string {
+  const cleaned = raw.replace(/\$/g, "").replace(/\s/g, "").replace(/[^\d.,]/g, "");
+  if (!cleaned) return "";
+
+  const lastComma = cleaned.lastIndexOf(",");
+  const lastDot = cleaned.lastIndexOf(".");
+  let decimalAt = -1;
+  if (lastComma >= 0 && lastDot >= 0) {
+    decimalAt = Math.max(lastComma, lastDot);
+  } else if (lastComma >= 0) {
+    const commas = cleaned.split(",").length - 1;
+    const after = cleaned.slice(lastComma + 1).replace(/[^\d]/g, "");
+    if (commas === 1 && after.length <= 2) decimalAt = lastComma;
+  } else if (lastDot >= 0) {
+    decimalAt = lastDot;
+  }
+
+  const wholeRaw = (decimalAt >= 0 ? cleaned.slice(0, decimalAt) : cleaned).replace(/[^\d]/g, "");
+  const fracRaw = decimalAt >= 0 ? cleaned.slice(decimalAt + 1).replace(/[^\d]/g, "") : "";
+  const whole = wholeRaw.replace(/^0+(?=\d)/, "");
+  const frac = fracRaw.slice(0, 2);
+  const trailing = decimalAt >= 0 && fracRaw.length === 0 && /[.,]$/.test(cleaned);
+  if (!whole && !frac && !trailing) return "";
+  const pesos = whole || "0";
+  if (trailing) return `${pesos}.`;
+  if (decimalAt >= 0) return frac ? `${pesos}.${frac}` : pesos;
+  return pesos;
+}
+
 /** Pesos con hasta 2 decimales y coma de miles → centavos enteros. */
 export function parsePesosToCents(input: string): number {
-  const cleaned = input.trim().replace(/^\$/, "").trim();
+  const cleaned = input.trim().replace(/^\$/, "").trim().replace(/[.,]$/, "");
   if (cleaned === "" || cleaned.startsWith("-")) {
     throw new Error(INVALID);
   }

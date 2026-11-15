@@ -3,7 +3,15 @@
 import QRCode from "qrcode";
 import { useEffect, useRef } from "react";
 
-export function QrImage({ value, dim }: { value: string; dim?: boolean }) {
+export function QrImage({
+  value,
+  dim,
+  label = "Código QR para pagar con CoDi",
+}: {
+  value: string;
+  dim?: boolean;
+  label?: string;
+}) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -21,7 +29,7 @@ export function QrImage({ value, dim }: { value: string; dim?: boolean }) {
 
   return (
     <div className={dim ? "card qr dim" : "card qr"}>
-      <canvas ref={ref} width={188} height={188} aria-label="Código QR para pagar con CoDi" />
+      <canvas ref={ref} width={188} height={188} aria-label={label} />
     </div>
   );
 }

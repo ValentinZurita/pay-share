@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { AppError } from "@/lib/errors";
 import { isProduction, supabaseServiceRoleKey, supabaseUrl } from "@/lib/env";
+import { formatMXN } from "@/lib/money";
 import { computeTotals } from "@/lib/totals";
 import type { BillForPayment, PaymentMethod, PaymentRow, Snapshot, SnapshotPayment } from "@/lib/types";
 
@@ -46,10 +47,12 @@ export function setTestClient(client: SupabaseClient | null): void {
 }
 
 export function resetMemoryForTests(): void {
-  memoryStore().bills = [];
-  memoryStore().payments = [];
-  memoryStore().billSeq = 0;
-  memoryStore().paySeq = 0;
+  const memory = memoryStore();
+  memory.tables = Array.from({ length: 6 }, (_, index) => ({ id: index + 1, name: `Mesa ${index + 1}` }));
+  memory.bills = [];
+  memory.payments = [];
+  memory.billSeq = 0;
+  memory.paySeq = 0;
 }
 
 export function isMemoryMode(): boolean {
@@ -249,7 +252,9 @@ export async function getAllSnapshots(): Promise<Snapshot[]> {
   await enterStore();
   try {
   if (isMemoryMode()) {
-    return memoryStore().tables.map((table) => {
+    return [...memoryStore().tables]
+      .sort((a, b) => a.id - b.id)
+      .map((table) => {
       const bill = memoryOpenBill(table.id);
       return toSnapshot(table, bill, bill ? memoryPayments(bill.id) : []);
     });
@@ -282,6 +287,69 @@ export async function getAllSnapshots(): Promise<Snapshot[]> {
   });
   } finally {
     await leaveStore(false);
+  }
+}
+
+export async function createTable(): Promise<Snapshot> {
+  await enterStore();
+  try {
+    if (isMemoryMode()) {
+      const memory = memoryStore();
+      const used = new Set(memory.tables.map((table) => table.id));
+      let id = 1;
+      while (used.has(id)) id += 1;
+      const table = { id, name: `Mesa ${id}` };
+      memory.tables.push(table);
+      memory.tables.sort((a, b) => a.id - b.id);
+      return toSnapshot(table, null, []);
+    }
+
+    const inserted = await server().from("tables").insert({ name: "Mesa" }).select("id").single();
+    dbError(inserted.error);
+    const id = (inserted.data as { id: number }).id;
+    const name = `Mesa ${id}`;
+    const renamed = await server().from("tables").update({ name }).eq("id", id).select("id, name").single();
+    dbError(renamed.error);
+    return toSnapshot(renamed.data as TableRow, null, []);
+  } finally {
+    await leaveStore(true);
+  }
+}
+
+export async function deleteTable(id: number): Promise<void> {
+  await enterStore();
+  try {
+    if (!Number.isInteger(id) || id <= 0) throw new AppError(400, "La mesa no es válida.");
+    if (isMemoryMode()) {
+      const memory = memoryStore();
+      if (!memory.tables.some((table) => table.id === id)) throw new AppError(404, "No encontramos esa mesa.");
+      if (memory.bills.some((bill) => bill.table_id === id && bill.status === "open")) {
+        throw new AppError(409, "Cierra la cuenta antes de quitar la mesa.");
+      }
+      const billIds = new Set(memory.bills.filter((bill) => bill.table_id === id).map((bill) => bill.id));
+      memory.tables = memory.tables.filter((table) => table.id !== id);
+      memory.bills = memory.bills.filter((bill) => bill.table_id !== id);
+      memory.payments = memory.payments.filter((payment) => !billIds.has(payment.bill_id));
+      return;
+    }
+
+    const open = await server().from("bills").select("id").eq("table_id", id).eq("status", "open").maybeSingle();
+    dbError(open.error);
+    if (open.data) throw new AppError(409, "Cierra la cuenta antes de quitar la mesa.");
+    const bills = await server().from("bills").select("id").eq("table_id", id);
+    dbError(bills.error);
+    const ids = ((bills.data ?? []) as { id: number }[]).map((bill) => bill.id);
+    if (ids.length > 0) {
+      const removedPayments = await server().from("payments").delete().in("bill_id", ids);
+      dbError(removedPayments.error);
+      const removedBills = await server().from("bills").delete().eq("table_id", id);
+      dbError(removedBills.error);
+    }
+    const removed = await server().from("tables").delete().eq("id", id).select("id");
+    dbError(removed.error);
+    if (!removed.data || removed.data.length === 0) throw new AppError(404, "No encontramos esa mesa.");
+  } finally {
+    await leaveStore(true);
   }
 }
 
@@ -328,6 +396,52 @@ export async function openBill(tableId: number, totalCents: number): Promise<Sna
   const snapshot = await getTableSnapshot(tableId);
   if (!snapshot) throw new AppError(404, "No encontramos esa mesa.");
   return snapshot;
+  } finally {
+    await leaveStore(true);
+  }
+}
+
+export async function updateOpenBillTotal(billId: number, totalCents: number): Promise<Snapshot> {
+  await enterStore();
+  try {
+    if (!Number.isInteger(billId) || billId <= 0) throw new AppError(400, "La cuenta no es válida.");
+    if (!Number.isInteger(totalCents) || totalCents <= 0) {
+      throw new AppError(400, "Escribe el total, por ejemplo 500.");
+    }
+
+    if (isMemoryMode()) {
+      const bill = memoryStore().bills.find((item) => item.id === billId && item.status === "open");
+      if (!bill) throw new AppError(404, "No encontramos esa cuenta.");
+      const paid = memoryStore()
+        .payments.filter((payment) => payment.bill_id === billId && payment.status === "paid")
+        .reduce((sum, payment) => sum + payment.amount_cents, 0);
+      if (totalCents < paid) {
+        throw new AppError(400, `Lo pagado es ${formatMXN(paid)}. El total no puede ser menor.`);
+      }
+      bill.total_cents = totalCents;
+      const snapshot = await getTableSnapshot(bill.table_id);
+      if (!snapshot) throw new AppError(404, "No encontramos esa mesa.");
+      return snapshot;
+    }
+
+    const supabase = server();
+    const existing = await supabase.from("bills").select("id, table_id, status").eq("id", billId).maybeSingle();
+    dbError(existing.error);
+    const bill = existing.data as { id: number; table_id: number; status: string } | null;
+    if (!bill || bill.status !== "open") throw new AppError(404, "No encontramos esa cuenta.");
+    const paymentsResult = await supabase.from("payments").select("amount_cents, status").eq("bill_id", billId);
+    dbError(paymentsResult.error);
+    const paid = ((paymentsResult.data ?? []) as { amount_cents: number; status: string }[])
+      .filter((payment) => payment.status === "paid")
+      .reduce((sum, payment) => sum + payment.amount_cents, 0);
+    if (totalCents < paid) {
+      throw new AppError(400, `Lo pagado es ${formatMXN(paid)}. El total no puede ser menor.`);
+    }
+    const updated = await supabase.from("bills").update({ total_cents: totalCents }).eq("id", billId).eq("status", "open");
+    dbError(updated.error);
+    const snapshot = await getTableSnapshot(bill.table_id);
+    if (!snapshot) throw new AppError(404, "No encontramos esa mesa.");
+    return snapshot;
   } finally {
     await leaveStore(true);
   }

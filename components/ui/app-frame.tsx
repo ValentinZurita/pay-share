@@ -19,6 +19,7 @@ export function AppFrame() {
     const onFocus = (event: FocusEvent) => {
       const target = event.target;
       if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) return;
+      if (target.closest("[role=dialog]")) return;
       window.setTimeout(() => target.scrollIntoView({ block: "center" }), 300);
     };
     document.addEventListener("focusin", onFocus);

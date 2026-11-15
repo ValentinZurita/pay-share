@@ -3,7 +3,7 @@ import { POST as openBillRoute } from "@/app/api/bills/route";
 import { POST as closeBillRoute } from "@/app/api/bills/[id]/close/route";
 import { POST as simulateRoute } from "@/app/api/dev/simulate/route";
 import { POST as payRoute } from "@/app/api/pay/route";
-import { getPayment, resetMemoryForTests } from "@/lib/db";
+import { createTable, deleteTable, getAllSnapshots, getPayment, resetMemoryForTests, updateOpenBillTotal } from "@/lib/db";
 
 function jsonRequest(url: string, body: unknown) {
   return new Request(url, {
@@ -85,5 +85,41 @@ describe("API de cuentas y pagos", () => {
     const row = await getPayment(body.paymentId);
     expect(row?.status).toBe("paid");
     expect(row?.amount_cents).toBe(1000);
+  });
+});
+
+describe("mesas", () => {
+  it("agrega una mesa y no quita una con cuenta abierta", async () => {
+    const created = await createTable();
+    expect(created.table.name).toBe("Mesa 7");
+
+    const opened = await openBillRoute(jsonRequest("http://local/api/bills", { tableId: created.table.id, totalCents: 1000 }));
+    expect(opened.status).toBe(201);
+    await expect(deleteTable(created.table.id)).rejects.toThrow(/Cierra la cuenta/);
+
+    const tables = await getAllSnapshots();
+    expect(tables.some((table) => table.table.id === created.table.id)).toBe(true);
+  });
+
+  it("quita una mesa libre y reutiliza su número", async () => {
+    await deleteTable(6);
+    const created = await createTable();
+    expect(created.table).toEqual({ id: 6, name: "Mesa 6" });
+    const tables = await getAllSnapshots();
+    expect(tables.some((table) => table.table.id === 6)).toBe(true);
+  });
+
+  it("cambia el total de una cuenta abierta y no lo baja de lo pagado", async () => {
+    const opened = await openBillRoute(jsonRequest("http://local/api/bills", { tableId: 2, totalCents: 50000 }));
+    const snapshot = (await opened.json()) as { bill: { id: number } };
+    const updated = await updateOpenBillTotal(snapshot.bill.id, 40000);
+    expect(updated.bill?.totalCents).toBe(40000);
+
+    const created = await payRoute(
+      jsonRequest("http://local/api/pay", { billId: snapshot.bill.id, amountCents: 30000, tipCents: 0, method: "qr" }),
+    );
+    const body = (await created.json()) as { paymentId: number };
+    await simulateRoute(jsonRequest("http://local/api/dev/simulate", { paymentId: body.paymentId }));
+    await expect(updateOpenBillTotal(snapshot.bill.id, 10000)).rejects.toThrow(/no puede ser menor/);
   });
 });

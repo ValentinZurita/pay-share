@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AccountCard } from "@/components/ui/account-card";
-import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { BottomSheet, SheetCancel } from "@/components/ui/bottom-sheet";
 import { IconCheck, IconGo, IconLock, IconPhone, IconQr, IconReceipt } from "@/components/ui/icons";
 import { qrPng, QrImage } from "@/components/ui/qr-image";
 import { ShopBar } from "@/components/ui/shop-bar";
@@ -538,9 +538,7 @@ export function MesaApp({
               <IconGo />
             </span>
           </button>
-          <button className="btn quiet" type="button" onClick={() => setSheet(null)}>
-            Cancelar
-          </button>
+          <SheetCancel />
         </BottomSheet>
       ) : null}
       {sheet === "phone" ? (
@@ -571,9 +569,7 @@ export function MesaApp({
           >
             {sending ? "Enviando cobro…" : `Enviar cobro de ${formatMXN(quote.sum)}`}
           </button>
-          <button className="btn quiet" type="button" onClick={() => setSheet(null)}>
-            Cancelar
-          </button>
+          <SheetCancel />
         </BottomSheet>
       ) : null}
     </div>

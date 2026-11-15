@@ -2,34 +2,36 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AccountCard } from "@/components/ui/account-card";
-import { BottomSheet } from "@/components/ui/bottom-sheet";
-import { IconBack } from "@/components/ui/icons";
-import { ShopBar } from "@/components/ui/shop-bar";
-import { formatMXN, parsePesosToCents } from "@/lib/money";
+import { BottomSheet, SheetCancel } from "@/components/ui/bottom-sheet";
+import { IconBack, IconMore } from "@/components/ui/icons";
+import { QrImage } from "@/components/ui/qr-image";
+import { formatMXN, parsePesosToCents, sanitizePesosInput } from "@/lib/money";
 import type { Snapshot } from "@/lib/types";
 import { useLiveSnapshot } from "@/lib/use-live-snapshot";
 
-export function CajaApp({
-  initial,
-  restaurant,
-  memory,
-}: {
-  initial: Snapshot[];
-  restaurant: string;
-  memory: boolean;
-}) {
+export function CajaApp({ initial }: { initial: Snapshot[] }) {
   const live = useLiveSnapshot(null, initial);
   const tables = (Array.isArray(live.data) ? live.data : initial) as Snapshot[];
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [mobileDetail, setMobileDetail] = useState(false);
   const [wide, setWide] = useState(false);
-  const [sheet, setSheet] = useState<null | "open" | "close">(null);
+  const [sheet, setSheet] = useState<null | "open" | "close" | "share" | "remove">(null);
   const [total, setTotal] = useState("");
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
+  const [origin, setOrigin] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [menu, setMenu] = useState(false);
+  const [cardMenuId, setCardMenuId] = useState<number | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const cardMenuRef = useRef<HTMLDivElement>(null);
   const seen = useRef<Set<number>>(new Set());
   const ready = useRef(false);
   const [fresh, setFresh] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 900px)");
@@ -63,6 +65,8 @@ export function CajaApp({
     setSelectedId(id);
     setError("");
     setTotal("");
+    setCopied(false);
+    setMenu(false);
     if (!table?.bill) {
       setSheet("open");
       setMobileDetail(false);
@@ -129,47 +133,264 @@ export function CajaApp({
     }
   }
 
+  useEffect(() => {
+    if (!menu && cardMenuId == null) return;
+    function onPointer(event: PointerEvent) {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (menuRef.current?.contains(target) || cardMenuRef.current?.contains(target)) return;
+      setMenu(false);
+      setCardMenuId(null);
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      setMenu(false);
+      setCardMenuId(null);
+    }
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [menu, cardMenuId]);
+
+  const mesaUrl = selected && origin ? `${origin}/mesa/${selected.table.id}` : "";
+
+  async function shareLink() {
+    if (!selected || !mesaUrl) return;
+    const payload = {
+      title: selected.table.name,
+      text: `Paga tu parte en ${selected.table.name}`,
+      url: mesaUrl,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(payload);
+        return;
+      }
+      await navigator.clipboard.writeText(mesaUrl);
+      setCopied(true);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      try {
+        await navigator.clipboard.writeText(mesaUrl);
+        setCopied(true);
+      } catch {
+        setError("No pudimos compartir el enlace.");
+      }
+    }
+  }
+
+  const mesaMenu = (
+    <div className="more" ref={menuRef}>
+      <button
+        className="backb"
+        type="button"
+        aria-label="Opciones de la mesa"
+        aria-expanded={menu}
+        aria-haspopup="menu"
+        onClick={() => setMenu((open) => !open)}
+      >
+        <IconMore />
+      </button>
+      {menu ? (
+        <div className="more-menu" role="menu">
+          <button
+            role="menuitem"
+            type="button"
+            onClick={() => {
+              setMenu(false);
+              setSheet("share");
+            }}
+          >
+            Ver código
+          </button>
+          <button
+            role="menuitem"
+            type="button"
+            onClick={() => {
+              setMenu(false);
+              void shareLink();
+            }}
+          >
+            Enviar enlace
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+
   const showDetail = Boolean(selected?.bill) && (wide || mobileDetail);
+
+  async function addTable() {
+    if (sending) return;
+    setSending(true);
+    setError("");
+    try {
+      const response = await fetch("/api/tables", { method: "POST" });
+      const body = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        setError(body.error ?? "No pudimos agregar la mesa.");
+        return;
+      }
+      await live.reload();
+    } catch {
+      setError("No pudimos conectar. Revisa tu internet e inténtalo de nuevo.");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  function editAmount(table: Snapshot) {
+    setCardMenuId(null);
+    setSelectedId(table.table.id);
+    setError("");
+    setMobileDetail(false);
+    if (!table.bill) {
+      setTotal("");
+      setSheet("open");
+      return;
+    }
+    setTotal((table.bill.totalCents / 100).toFixed(2));
+    setSheet("edit");
+  }
+
+  function askRemove(table: Snapshot) {
+    setCardMenuId(null);
+    setSelectedId(table.table.id);
+    setError("");
+    setSheet("remove");
+  }
+
+  async function submitEdit(event?: React.FormEvent) {
+    event?.preventDefault();
+    if (!selected?.bill || sending) return;
+    let cents = 0;
+    try {
+      cents = parsePesosToCents(total);
+    } catch {
+      setError("Escribe el total, por ejemplo 500.");
+      return;
+    }
+    if (cents <= 0) {
+      setError("Escribe el total, por ejemplo 500.");
+      return;
+    }
+    setSending(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/bills/${selected.bill.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ totalCents: cents }),
+      });
+      const body = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        setError(body.error ?? "No pudimos guardar el monto.");
+        return;
+      }
+      setSheet(null);
+      await live.reload();
+    } catch {
+      setError("No pudimos conectar. Revisa tu internet e inténtalo de nuevo.");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function submitDelete() {
+    if (!selected || sending) return;
+    setSending(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/tables/${selected.table.id}`, { method: "DELETE" });
+      if (!response.ok) {
+        const body = (await response.json()) as { error?: string };
+        setError(body.error ?? "No pudimos quitar la mesa.");
+        return;
+      }
+      setSheet(null);
+      setSelectedId(null);
+      setMobileDetail(false);
+      await live.reload();
+    } catch {
+      setError("No pudimos conectar. Revisa tu internet e inténtalo de nuevo.");
+    } finally {
+      setSending(false);
+    }
+  }
 
   const list = (
     <div className="body">
-      <h1 className="h-page">Mesas</h1>
-      {memory ? <p className="memory">Modo local: los datos se borran al reiniciar. Conecta Supabase para guardarlos.</p> : null}
+      <div className="list-head">
+        <h1 className="h-page">Mesas</h1>
+        <button className="btn secondary compact" type="button" disabled={sending} onClick={() => void addTable()}>
+          Nueva mesa
+        </button>
+      </div>
+      {error && !showDetail ? (
+        <p className="banner" role="alert">
+          {error}
+        </p>
+      ) : null}
       {live.error ? (
         <p className="banner" role="alert">
           {live.error}
         </p>
       ) : null}
+      {tables.length === 0 ? <p className="empty-note">No hay mesas. Agrega la primera.</p> : null}
       <div className="grid">
         {tables.map((table) => {
           const open = table.bill;
           const covered = open ? open.remainingCents === 0 : false;
+          const menuOpen = cardMenuId === table.table.id;
           return (
-            <button
+            <div
               key={table.table.id}
               className={selectedId === table.table.id && wide ? "card mesa selected" : "card mesa"}
-              type="button"
-              onClick={() => openTable(table.table.id)}
             >
-              <span className="mesa-top">
-                <b>{table.table.name}</b>
-                {!open ? (
-                  <span className="badge neutral">Libre</span>
-                ) : covered ? (
-                  <span className="badge ok">Cubierta</span>
-                ) : (
-                  <span className="badge info">Abierta</span>
-                )}
-              </span>
-              {open ? (
-                <span>
-                  <span className="amt num">{formatMXN(open.remainingCents)}</span>
-                  <small>restante de {formatMXN(open.totalCents)}</small>
+              <button className="mesa-main" type="button" onClick={() => openTable(table.table.id)}>
+                <span className="mesa-id">
+                  <b>{table.table.name}</b>
+                  {!open ? (
+                    <span className="badge neutral">Libre</span>
+                  ) : covered ? (
+                    <span className="badge ok">Cubierta</span>
+                  ) : (
+                    <span className="badge info">Abierta</span>
+                  )}
                 </span>
-              ) : (
-                <small>Toca para abrir cuenta</small>
-              )}
-            </button>
+                {open ? (
+                  <span>
+                    <span className="amt num">{formatMXN(open.remainingCents)}</span>
+                    <small>restante de {formatMXN(open.totalCents)}</small>
+                  </span>
+                ) : null}
+              </button>
+              <div className="mesa-more" ref={menuOpen ? cardMenuRef : undefined}>
+                <button
+                  className="mesa-dots"
+                  type="button"
+                  aria-label={`Opciones de ${table.table.name}`}
+                  aria-expanded={menuOpen}
+                  aria-haspopup="menu"
+                  onClick={() => setCardMenuId(menuOpen ? null : table.table.id)}
+                >
+                  <IconMore />
+                </button>
+                {menuOpen ? (
+                  <div className="more-menu" role="menu">
+                    <button role="menuitem" type="button" onClick={() => editAmount(table)}>
+                      Editar monto
+                    </button>
+                    <button role="menuitem" type="button" onClick={() => askRemove(table)}>
+                      Eliminar mesa
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            </div>
           );
         })}
       </div>
@@ -178,25 +399,25 @@ export function CajaApp({
 
   const detail = selected?.bill ? (
     <div className="caja-detail">
-      {wide ? null : (
-        <div className="bar">
+      <div className="bar detail-bar">
+        {wide ? (
+          <span className="bar-side" />
+        ) : (
           <button className="backb" type="button" aria-label="Volver a las mesas" onClick={() => setMobileDetail(false)}>
             <IconBack />
           </button>
-          <span className="name">
-            {selected.table.name}
-            <small>Cuenta {selected.bill.id}</small>
-          </span>
-        </div>
-      )}
+        )}
+        <h1 className="detail-title">
+          {selected.table.name}
+          <small>Cuenta {selected.bill.id}</small>
+        </h1>
+        {mesaMenu}
+      </div>
       <div className="body">
-        {wide ? (
-          <h1 className="h-page">
-            {selected.table.name}
-            <small style={{ display: "block", fontSize: 13, fontWeight: 400, color: "var(--muted)" }}>
-              Cuenta {selected.bill.id}
-            </small>
-          </h1>
+        {copied ? (
+          <p className="empty-note" role="status">
+            Enlace copiado.
+          </p>
         ) : null}
         <AccountCard bill={selected.bill} restLabel="Restante en efectivo" staff freshIds={fresh} />
         {selected.bill.payments.length === 0 ? (
@@ -236,7 +457,6 @@ export function CajaApp({
 
   return (
     <div className="caja-page">
-      {wide || !showDetail ? <ShopBar restaurant={restaurant} end={<span className="badge info">Caja</span>} /> : null}
       {wide ? (
         <div className="caja-split">
           {list}
@@ -259,13 +479,17 @@ export function CajaApp({
                 <span className="currency">$</span>
                 <input
                   id="bill-total"
+                  type="text"
                   inputMode="decimal"
                   autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
                   placeholder="0.00"
                   value={total}
-                  autoFocus
+                  enterKeyHint="done"
                   onChange={(event) => {
-                    setTotal(event.target.value);
+                    setTotal(sanitizePesosInput(event.target.value));
                     setError("");
                   }}
                 />
@@ -280,10 +504,77 @@ export function CajaApp({
             <button className="btn primary" type="submit" disabled={sending}>
               {sending ? "Abriendo cuenta…" : "Abrir cuenta"}
             </button>
-            <button className="btn quiet" type="button" onClick={() => setSheet(null)}>
-              Cancelar
-            </button>
+            <SheetCancel />
           </form>
+        </BottomSheet>
+      ) : null}
+      {sheet === "share" && selected && mesaUrl ? (
+        <BottomSheet title={`Código · ${selected.table.name}`} onClose={() => setSheet(null)}>
+          <div className="mesa-share">
+            <QrImage value={mesaUrl} label={`Código para abrir ${selected.table.name}`} />
+            <p className="mesa-url">{mesaUrl.replace(/^https?:\/\//, "")}</p>
+            <button className="btn primary" type="button" onClick={() => void shareLink()}>
+              {copied ? "Enlace copiado" : "Enviar enlace"}
+            </button>
+          </div>
+        </BottomSheet>
+      ) : null}
+      {sheet === "edit" && selected?.bill ? (
+        <BottomSheet title={`Editar monto · ${selected.table.name}`} onClose={() => setSheet(null)}>
+          <form onSubmit={(event) => void submitEdit(event)} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div className="field">
+              <label htmlFor="edit-total">Total de la cuenta</label>
+              <div className={error ? "input bad" : "input"}>
+                <span className="currency">$</span>
+                <input
+                  id="edit-total"
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                  placeholder="0.00"
+                  value={total}
+                  enterKeyHint="done"
+                  onChange={(event) => {
+                    setTotal(sanitizePesosInput(event.target.value));
+                    setError("");
+                  }}
+                />
+                <em>MXN</em>
+              </div>
+              {error ? (
+                <p className="msg-err" role="alert">
+                  {error}
+                </p>
+              ) : null}
+            </div>
+            <button className="btn primary" type="submit" disabled={sending}>
+              {sending ? "Guardando…" : "Guardar monto"}
+            </button>
+            <SheetCancel />
+          </form>
+        </BottomSheet>
+      ) : null}
+      {sheet === "remove" && selected ? (
+        <BottomSheet title={`¿Eliminar la ${selected.table.name}?`} onClose={() => setSheet(null)}>
+          <p>
+            {selected.bill
+              ? "Esta mesa tiene una cuenta abierta. Ciérrala antes de quitarla."
+              : "Se borra esta mesa. Su código dejará de servir."}
+          </p>
+          {error ? (
+            <p className="msg-err" role="alert">
+              {error}
+            </p>
+          ) : null}
+          {selected.bill ? null : (
+            <button className="btn primary" type="button" disabled={sending} onClick={() => void submitDelete()}>
+              {sending ? "Eliminando mesa…" : "Sí, eliminar mesa"}
+            </button>
+          )}
+          <SheetCancel />
         </BottomSheet>
       ) : null}
       {sheet === "close" && selected ? (
@@ -292,9 +583,7 @@ export function CajaApp({
           <button className="btn primary" type="button" disabled={sending} onClick={() => void submitClose()}>
             {sending ? "Cerrando mesa…" : "Sí, cerrar mesa"}
           </button>
-          <button className="btn quiet" type="button" onClick={() => setSheet(null)}>
-            Cancelar
-          </button>
+          <SheetCancel />
         </BottomSheet>
       ) : null}
     </div>
