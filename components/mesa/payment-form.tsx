@@ -66,7 +66,7 @@ export function PaymentForm({
           placeholder="Para que la mesa vea quién pagó"
           value={name}
           onChange={(event) => onNameChange(event.target.value)}
-          inputClassName="text-[16px] font-medium"
+          textSize="md"
         />
       </Field>
     </>

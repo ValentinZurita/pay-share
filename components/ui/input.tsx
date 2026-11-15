@@ -57,6 +57,7 @@ export interface TextInputProps extends Omit<InputHTMLAttributes<HTMLInputElemen
   invalid?: boolean;
   prefix?: ReactNode;
   suffix?: ReactNode;
+  textSize?: "lg" | "md";
   inputClassName?: string;
 }
 
@@ -67,6 +68,7 @@ export function TextInput({
   invalid = false,
   prefix,
   suffix,
+  textSize = "lg",
   className,
   inputClassName,
   ...props
@@ -82,7 +84,8 @@ export function TextInput({
       {prefix ? <span className="text-[17px] text-muted select-none">{prefix}</span> : null}
       <input
         className={cn(
-          "min-w-0 flex-1 border-0 bg-transparent p-0 text-[18px] font-semibold tracking-[-0.01em] text-ink shadow-none outline-none placeholder:font-normal placeholder:text-muted placeholder:opacity-70 focus-visible:shadow-none num",
+          "min-w-0 flex-1 border-0 bg-transparent p-0 tracking-[-0.01em] text-ink shadow-none outline-none placeholder:font-normal placeholder:text-muted placeholder:opacity-70 focus-visible:shadow-none num",
+          textSize === "md" ? "text-[16px] font-medium" : "text-[18px] font-semibold",
           inputClassName,
         )}
         {...props}

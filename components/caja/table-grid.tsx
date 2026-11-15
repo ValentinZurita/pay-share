@@ -32,7 +32,10 @@ export function TableGrid({
   onRemoveTable: (table: Snapshot) => void;
 }) {
   return (
-    <ScrollBody className="px-5 pt-[calc(24px+env(safe-area-inset-top))] pb-6 min-[900px]:px-1 min-[900px]:pt-1 min-[900px]:pb-6">
+    <ScrollBody
+      padding="none"
+      className="px-5 pt-[calc(24px+env(safe-area-inset-top))] pb-6 min-[900px]:px-1 min-[900px]:pt-1 min-[900px]:pb-6"
+    >
       <div className="flex items-center justify-between gap-3">
         <PageTitle>Mesas</PageTitle>
         <Button variant="secondary" size="compact" disabled={sending} onClick={onAddTable}>

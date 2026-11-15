@@ -15,12 +15,14 @@ export function DropdownMenu({
   label,
   trigger,
   items,
+  positioned = true,
   className,
   menuClassName,
 }: {
   label: string;
   trigger: (props: { open: boolean; toggle: () => void }) => ReactNode;
   items: DropdownMenuItem[];
+  positioned?: boolean;
   className?: string;
   menuClassName?: string;
 }) {
@@ -48,7 +50,7 @@ export function DropdownMenu({
   }, [open]);
 
   return (
-    <div ref={rootRef} className={cn("relative shrink-0", className)} aria-label={label}>
+    <div ref={rootRef} className={cn(positioned && "relative", "shrink-0", className)} aria-label={label}>
       {trigger({ open, toggle: () => setOpen((prev) => !prev) })}
       {open ? (
         <div

@@ -3,11 +3,17 @@ import { cn } from "@/lib/cn";
 
 type IconProps = SVGProps<SVGSVGElement>;
 
-function IconBase({ className, children, ...props }: IconProps) {
+function IconBase({
+  sizeClassName = "h-5 w-5",
+  className,
+  children,
+  ...props
+}: IconProps & { sizeClassName?: string }) {
   return (
     <svg
       className={cn(
-        "h-5 w-5 fill-none stroke-current stroke-2 [stroke-linecap:round] [stroke-linejoin:round]",
+        sizeClassName,
+        "fill-none stroke-current stroke-2 [stroke-linecap:round] [stroke-linejoin:round]",
         className,
       )}
       viewBox="0 0 24 24"
@@ -61,9 +67,9 @@ export function IconCheck(props: IconProps) {
   );
 }
 
-export function IconLock({ className, ...props }: IconProps) {
+export function IconLock(props: IconProps) {
   return (
-    <IconBase className={cn("h-4 w-4", className)} {...props}>
+    <IconBase sizeClassName="h-4 w-4" {...props}>
       <rect x="5" y="11" width="14" height="9" rx="2" />
       <path d="M8 11V8a4 4 0 0 1 8 0v3" />
     </IconBase>

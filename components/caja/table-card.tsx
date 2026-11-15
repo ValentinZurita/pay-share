@@ -30,10 +30,8 @@ export function TableCard({
 
   return (
     <Card
-      className={cn(
-        "relative min-h-[118px] w-full p-0 transition-shadow duration-150 ease-(--ease) hover:shadow-card-hover",
-        selected && "shadow-focus",
-      )}
+      selected={selected}
+      className="relative min-h-[118px] w-full p-0 transition-shadow duration-150 ease-(--ease) hover:shadow-card-hover"
     >
       <button
         type="button"
@@ -62,6 +60,7 @@ export function TableCard({
 
       <DropdownMenu
         label={`Opciones de ${table.table.name}`}
+        positioned={false}
         className="absolute top-1.5 right-1.5 z-2"
         menuClassName="top-[calc(100%+2px)]"
         trigger={({ open: menuOpen, toggle }) => (

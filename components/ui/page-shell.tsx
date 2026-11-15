@@ -26,14 +26,16 @@ export function DinerShell({
  * Scrollable main body inside a flex column shell.
  */
 export function ScrollBody({
+  padding = "default",
   className,
   children,
   ...props
-}: HTMLAttributes<HTMLDivElement>) {
+}: HTMLAttributes<HTMLDivElement> & { padding?: "default" | "none" }) {
   return (
     <div
       className={cn(
-        "flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-1.5 pb-5 max-[380px]:px-4",
+        "flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto",
+        padding === "default" && "px-5 pt-1.5 pb-5 max-[380px]:px-4",
         className,
       )}
       {...props}

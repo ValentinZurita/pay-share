@@ -5,6 +5,7 @@ export type CardVariant = "elevated" | "bordered" | "dashed";
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: CardVariant;
+  selected?: boolean;
 }
 
 const CARD_VARIANTS: Record<CardVariant, string> = {
@@ -16,8 +17,18 @@ const CARD_VARIANTS: Record<CardVariant, string> = {
 /**
  * Surface container for grouped content, bills, forms, and summary blocks.
  */
-export function Card({ variant = "elevated", className, ...props }: CardProps) {
-  return <div className={cn(CARD_VARIANTS[variant], className)} {...props} />;
+export function Card({ variant = "elevated", selected = false, className, ...props }: CardProps) {
+  return (
+    <div
+      className={cn(
+        variant === "elevated" && selected
+          ? "bg-surface rounded-xl shadow-focus"
+          : CARD_VARIANTS[variant],
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
 export interface KeyValueItem {
