@@ -1,107 +1,76 @@
 <div align="center">
 
-<img src="docs/img/logo.svg" width="72" alt="PayShare" />
+<img src="docs/img/logo.svg" width="64" alt="PayShare" />
 
 # PayShare
 
-**Un QR por mesa. Cada quien paga su parte con CoDi y la caja lo ve al instante.**
+*Un QR por mesa. Cada quien paga su parte con CoDi y la caja lo ve al instante.*
 
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=nextdotjs&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=flat-square&logo=supabase&logoColor=white)
-![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white)
 ![CoDi con pey](https://img.shields.io/badge/CoDi-con%20pey-1E66F5?style=flat-square)
 
-[**App en vivo**](https://pay-share-one.vercel.app) · [**Video**](https://github.com/ValentinZurita/pay-share/raw/master/docs/video/pay-share.mp4) · [**Caja**](https://pay-share-one.vercel.app/caja) (PIN `977564`)
+[App en vivo](https://pay-share-one.vercel.app) &nbsp;·&nbsp; [Video](https://github.com/ValentinZurita/pay-share/raw/master/docs/video/pay-share.mp4) &nbsp;·&nbsp; [Caja](https://pay-share-one.vercel.app/caja) <sub>(PIN `977564`)</sub>
 
-<a href="https://github.com/ValentinZurita/pay-share/raw/master/docs/video/pay-share.mp4"><img src="docs/img/preview.gif" width="800" alt="PayShare en acción" /></a>
+<br />
 
-<sub>▶ <a href="https://github.com/ValentinZurita/pay-share/raw/master/docs/video/pay-share.mp4">Ver video completo (56 s)</a></sub>
+<a href="https://github.com/ValentinZurita/pay-share/raw/master/docs/video/pay-share.mp4"><img src="docs/img/preview.gif" width="760" alt="PayShare en acción" /></a>
 
-<sub>🏆 Cursor Hackatón México · Villahermosa · Proyecto con API de <b>pey</b> (CoDi)</sub>
+<sub>▶ <a href="https://github.com/ValentinZurita/pay-share/raw/master/docs/video/pay-share.mp4">Ver el video completo · 56 s</a></sub>
 
 </div>
 
+<br />
+
 ## El problema
 
-Cuando una mesa paga por separado, la caja revisa transferencias a mano, la propina se revuelve con la venta y nadie sabe cuánto falta en efectivo.
+Cuando una mesa paga por separado, la caja revisa transferencias a mano, la propina se revuelve con la venta y nadie sabe cuánto falta.
 
-## Cómo funciona
+## La solución
 
-<table>
-  <tr>
-    <td align="center" width="33%"><img src="docs/img/mesa-parte.webp" width="200" alt="El comensal escribe su parte y la propina" /></td>
-    <td align="center" width="33%"><img src="docs/img/mesa-codi.webp" width="200" alt="Cobro CoDi generado con pey" /></td>
-    <td align="center" width="33%"><img src="docs/img/mesa-pagado.webp" width="200" alt="Pago recibido" /></td>
-  </tr>
-  <tr>
-    <td align="center"><sub><b>1.</b> Escanea el QR y pone su parte + propina</sub></td>
-    <td align="center"><sub><b>2.</b> Paga con CoDi desde su banco</sub></td>
-    <td align="center"><sub><b>3.</b> Recibe su comprobante</sub></td>
-  </tr>
-</table>
+Un QR fijo en cada mesa. Cada comensal paga lo suyo con CoDi, sin terminal ni app, y la caja ve todo en tiempo real.
 
-<img src="docs/img/caja.webp" width="100%" alt="La caja ve lo pagado, la propina aparte y lo que falta en efectivo" />
-<p align="center"><sub><b>4.</b> La caja se actualiza sola: pagado por transferencia, propinas aparte y restante en efectivo.</sub></p>
+```mermaid
+flowchart LR
+    A([Cajero abre la mesa]) --> B([Comensal escanea el QR])
+    B --> C([Paga su parte + propina<br/>con CoDi · pey])
+    C --> D([La caja lo ve al instante])
+    D --> E([Lo que falta, en efectivo])
+```
 
-El cajero abre la mesa con solo el total. Cada quien escanea el QR, paga lo suyo con CoDi y la caja ve el resto en efectivo.
+<p align="center">
+  <img src="docs/img/caja.webp" width="720" alt="La caja: pagado, propinas aparte y restante en efectivo" />
+</p>
 
 ## Cómo usa pey
 
-```mermaid
-sequenceDiagram
-    actor C as Comensal
-    participant P as PayShare
-    participant Y as pey API
-    participant B as Banco (CoDi)
-    participant K as Caja
-    C->>P: Su parte + propina
-    P->>Y: POST /codi/qr
-    Y-->>C: Cobro CoDi (QR o a su celular)
-    C->>B: Autoriza el pago
-    B-->>Y: Pago liquidado
-    Y->>P: Webhook codi.qr.payment_received
-    P-->>K: Pagado, propina y restante al instante
-```
-
-- **Cobro:** [`app/api/pay/route.ts`](app/api/pay/route.ts) crea el pago y [`lib/payments/pey.ts`](lib/payments/pey.ts) llama a `POST /codi/qr` con monto, concepto (`Mesa 4 cuenta 12`), expiración y `numRef`.
-- **Confirmación:** [`app/api/webhooks/pey/route.ts`](app/api/webhooks/pey/route.ts) verifica la firma ([Standard Webhooks](https://www.standardwebhooks.com/)) y registra el pago de forma idempotente: un aviso repetido no se cuenta dos veces.
+- **Cobro CoDi dinámico** con `POST /codi/qr` por cada parte. <sub>[`lib/payments/pey.ts`](lib/payments/pey.ts)</sub>
+- **Webhook firmado** `codi.qr.payment_received` que actualiza la caja al instante. <sub>[`app/api/webhooks/pey/route.ts`](app/api/webhooks/pey/route.ts)</sub>
 
 ## Pruébalo
 
-1. Entra a la [caja](https://pay-share-one.vercel.app/caja) con el PIN `977564` y abre la **Mesa 4** con un total, por ejemplo `$500`.
-2. En el celular u otra pestaña abre la [Mesa 4](https://pay-share-one.vercel.app/mesa/4), escribe tu parte y la propina y paga.
-3. Regresa a la caja: verás lo pagado, la propina aparte y lo que falta en efectivo.
-4. Cierra la mesa con **Cerrar mesa**.
+1. Entra a la [caja](https://pay-share-one.vercel.app/caja) con el PIN `977564` y abre la **Mesa 4** con un total.
+2. Abre la [Mesa 4](https://pay-share-one.vercel.app/mesa/4) en tu celular y paga tu parte con propina.
+3. Vuelve a la caja: verás lo pagado, la propina aparte y lo que falta.
 
-> ⚠️ **Honestidad ante todo:** la versión publicada corre con el pago **simulado** (botón *Simular pago*) porque la cuenta CLABE de pey tarda días en activarse. La integración real con pey ya está en el código; con `PEY_MODE=live` y una `PEY_API_KEY` cobra de verdad (`DEMO_MODE` limita el cobro a $0.01).
+<sub>La versión publicada corre en modo de prueba mientras pey activa la cuenta CLABE; la integración real ya está en el código (`PEY_MODE=live`).</sub>
 
-## Stack
+**Stack:** Next.js · React · TypeScript · Tailwind CSS · Supabase · Vercel · API de pey
 
-Next.js 16 · React 19 · TypeScript · Tailwind CSS · Supabase · Vercel · API de pey (CoDi)
+<br />
 
 <details>
 <summary><b>Correr localmente</b></summary>
 
+<br />
+
 ```bash
 pnpm install
-cp .env.example .env.local
-pnpm dev   # http://localhost:3000
+cp .env.example .env.local   # llena las variables
+pnpm dev                      # http://localhost:3000
 ```
 
-Con Supabase, ejecuta [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) en el SQL Editor (crea 6 mesas). Sin llaves de Supabase y con `PEY_MODE=mock`, las mesas viven en memoria.
-
-| Variable | Uso |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto de Supabase |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Llave pública `anon` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Llave `service_role` (secreta, solo servidor) |
-| `NEXT_PUBLIC_BASE_URL` | Dirección del sitio, sin barra final; va dentro de los QR |
-| `NEXT_PUBLIC_RESTAURANT_NAME` | Nombre que ve el comensal |
-| `PEY_MODE` | `live` para el API de pey; `mock` para probar sin banco |
-| `DEMO_MODE` | `true` cobra un monto mínimo de prueba; no lo pongas en `false` con la cuenta de prueba de pey |
-| `PEY_API_KEY` | Portal pey → Developer (secreta) |
-| `PEY_WEBHOOK_SECRET` | Secreto `whsec_…` del webhook (solo servidor) |
-| `CASHIER_PIN` | PIN de la caja; obligatorio en producción |
+Con Supabase, ejecuta [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql). Sin llaves y con `PEY_MODE=mock`, las mesas viven en memoria. Las variables están descritas en [`.env.example`](.env.example).
 
 Comandos: `pnpm test` · `pnpm typecheck` · `pnpm build`
 
@@ -110,6 +79,8 @@ Comandos: `pnpm test` · `pnpm typecheck` · `pnpm build`
 <details>
 <summary><b>Componentes de terceros</b></summary>
 
-Next.js, React, TypeScript, Tailwind CSS, `@supabase/supabase-js`, `qrcode`, `standardwebhooks`, `@vercel/blob` y el API de pey. Construido durante el hackathon con ayuda de herramientas de IA (Cursor).
+<br />
+
+Next.js, React, TypeScript, Tailwind CSS, `@supabase/supabase-js`, `qrcode`, `standardwebhooks`, `@vercel/blob` y el API de pey. Hecho durante el Cursor Hackatón México (Villahermosa) con ayuda de Cursor.
 
 </details>
