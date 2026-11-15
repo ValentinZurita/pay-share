@@ -2,7 +2,12 @@
 
 import QRCode from "qrcode";
 import { useEffect, useRef } from "react";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/cn";
 
+/**
+ * Renders a QR code canvas inside a padded card, dimmed when expired.
+ */
 export function QrImage({
   value,
   dim,
@@ -28,12 +33,15 @@ export function QrImage({
   }, [value]);
 
   return (
-    <div className={dim ? "card qr dim" : "card qr"}>
-      <canvas ref={ref} width={188} height={188} aria-label={label} />
-    </div>
+    <Card className={cn("p-4", dim && "opacity-35")}>
+      <canvas ref={ref} width={188} height={188} className="block h-[188px] w-[188px]" aria-label={label} />
+    </Card>
   );
 }
 
+/**
+ * Generates a 512px PNG Blob for downloading or sharing a QR code.
+ */
 export async function qrPng(value: string): Promise<Blob> {
   const styles = getComputedStyle(document.documentElement);
   const dark = styles.getPropertyValue("--ink").trim();
