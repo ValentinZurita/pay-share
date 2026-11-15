@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
 import { AppFrame } from "@/components/ui/app-frame";
-import { themeBootScript } from "@/lib/theme";
+import { ThemeBoot } from "@/components/ui/theme-boot";
 import "./globals.css";
 
 const inter = Inter({
@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
     >
       <body className="min-h-dvh antialiased">
-        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+        <ThemeBoot />
         <AppFrame />
         {children}
       </body>

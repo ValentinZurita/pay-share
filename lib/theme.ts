@@ -17,5 +17,5 @@ export function themeClass(theme: Theme): `t-${Theme}` {
 const themeGuard = THEMES.map((theme) => `s===${JSON.stringify(theme)}`).join("||");
 const themeClasses = THEMES.map((theme) => JSON.stringify(themeClass(theme))).join(",");
 
-/** Script bloqueante del layout: aplica la clase antes de pintar y no truena si localStorage falla. */
+/** Corre al parsear el HTML, dentro de <head>, antes de pintar. Si localStorage falla, queda claro. */
 export const themeBootScript = `(function(){try{var s=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)});var t=(${themeGuard})?s:"light";var r=document.documentElement;r.classList.remove(${themeClasses});r.classList.add("t-"+t);}catch(e){try{document.documentElement.classList.add("t-light");}catch(e2){}}})();`;
