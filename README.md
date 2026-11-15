@@ -38,10 +38,6 @@ flowchart LR
     D --> E([Lo que falta, en efectivo])
 ```
 
-<p align="center">
-  <img src="docs/img/caja.webp" width="720" alt="La caja: pagado, propinas aparte y restante en efectivo" />
-</p>
-
 ## Cómo usa pey
 
 - **Cobro CoDi dinámico** con `POST /codi/qr` por cada parte. <sub>[`lib/payments/pey.ts`](lib/payments/pey.ts)</sub>
@@ -49,9 +45,9 @@ flowchart LR
 
 ## Pruébalo
 
-1. Entra a la [caja](https://pay-share-one.vercel.app/caja) con el PIN `977564` y abre la **Mesa 4** con un total.
-2. Abre la [Mesa 4](https://pay-share-one.vercel.app/mesa/4) en tu celular y paga tu parte con propina.
-3. Vuelve a la caja: verás lo pagado, la propina aparte y lo que falta.
+1. Entra a la [caja](https://pay-share-one.vercel.app/caja) con el PIN `977564`. En la **Mesa 4** toca **Abrir cuenta** y escribe un total, por ejemplo `500`.
+2. Abre la [Mesa 4](https://pay-share-one.vercel.app/mesa/4) en tu celular. Escribe cuánto pagas, elige la propina, toca **Pagar** y luego **Código QR**. Confirma el pago con el botón que aparece debajo de los pasos.
+3. Vuelve a la caja: verás lo pagado por transferencia, la propina aparte y el restante en efectivo. Toca **Cerrar mesa** para dejarla libre.
 
 <sub>La versión publicada corre en modo de prueba mientras pey activa la cuenta CLABE; la integración real ya está en el código (`PEY_MODE=live`).</sub>
 
