@@ -3,7 +3,7 @@
 > Complemento de `PLAN.md`. Todo agente que toque interfaz (tareas F2.5–F2.8, F4.1–F4.4) lee este documento antes de escribir código.
 > Referencia visual navegable: `design/prototipo-ui.html` (abrir en el navegador).
 >
-> **AVISO (2026-11-15): el rediseño PayShare está en `docs/rediseno/referencia.html`.** En lo visual manda esa referencia, salvo el talón del ticket: aquí el papel es uniforme y el tinte aqua vive solo en la cabecera. Los tokens vigentes están en `app/globals.css`. La cuenta es un ticket (no el anillo). El tema sigue siempre al sistema (`prefers-color-scheme`); no hay selector ni `localStorage`. Siguen vigentes los textos (§6), las reglas móviles (§7) y la accesibilidad (§8), salvo el placeholder del nombre y el texto de pagos vacíos, que no se muestran. Donde §2, §3 o §9 hablen del anillo, de un solo tema claro, de un selector de tema, o prohíban degradados, manda este aviso.
+> **AVISO (2026-11-15): el rediseño PayShare está en `docs/rediseno/referencia.html`.** En lo visual manda esa referencia, salvo el ticket: papel plano en `--card`, sin degradado ni tinte, con una sombra corta. Los tokens vigentes están en `app/globals.css`. La cuenta es un ticket (no el anillo). El tema sigue siempre al sistema (`prefers-color-scheme`); no hay selector ni `localStorage`. Siguen vigentes los textos (§6), las reglas móviles (§7) y la accesibilidad (§8), salvo el placeholder del nombre y el texto de pagos vacíos, que no se muestran. Donde §2, §3 o §9 hablen del anillo, de un solo tema claro, de un selector de tema, o prohíban degradados, manda este aviso.
 
 ---
 
@@ -35,7 +35,7 @@ El tema sigue al sistema, sin selector y sin recuerdo en `localStorage`:
 
 El QR de CoDi no sigue el tema: módulos `--qr-ink` (`#111113`) sobre placa `--qr-paper` (`#ffffff`), también en oscuro.
 
-Tokens nuevos del rediseño, además de los nombres que ya usaba la app (`--bg`, `--surface`, `--ink`, `--muted`, `--line`, `--danger`): `--fg`, `--fg2`, `--fg3`, `--screen`, `--card`, `--paper`, `--sep`, `--fill`, `--glass`, `--accent`, `--ok`, `--warn`, `--btn`, `--on-btn`, `--tshadow`, `--qr-paper`, `--qr-ink`, `--ticket-wash`. Los valores claros viven en `:root`; los oscuros, en `@media (prefers-color-scheme: dark) { :root }`. Ningún componente usa colores literales.
+Tokens nuevos del rediseño, además de los nombres que ya usaba la app (`--bg`, `--surface`, `--ink`, `--muted`, `--line`, `--danger`): `--fg`, `--fg2`, `--fg3`, `--screen`, `--card`, `--paper`, `--sep`, `--fill`, `--glass`, `--accent`, `--ok`, `--warn`, `--btn`, `--on-btn`, `--tshadow`, `--qr-paper`, `--qr-ink`. Los valores claros viven en `:root`; los oscuros, en `@media (prefers-color-scheme: dark) { :root }`. Ningún componente usa colores literales.
 
 Los valores numéricos no se copian aquí: la fuente es `app/globals.css`, expuesta a Tailwind 4 con `@theme inline`. Contraste mínimo AA (4.5:1) para el texto. `--danger` solo en errores. La acción principal usa `--btn` / `--on-btn`. La propina usa `--warn`.
 
@@ -64,7 +64,7 @@ Ningún campo de texto por debajo de 16 px (evita el zoom automático de iOS).
 
 - Escala de espacios: 4 · 8 · 12 · 16 · 20 · 24 · 32. Margen lateral de pantalla: 20 px (16 px si el ancho es < 380 px).
 - Formas muy redondas: botones, chips y campos en píldora (999); tarjetas y filas 20–28; bloque selva con las esquinas inferiores a 34; hojas inferiores 32 arriba.
-- Vidrio (degradado leve + `backdrop-filter` + filo de luz) en lo que flota: encabezado, campos, barras y hojas. El ticket no lleva `backdrop-filter`: su padre usa `filter: drop-shadow`. Cuerpo, talón y dientes comparten `--paper`. Solo la cabecera lleva un tinte aqua translúcido (`--ticket-wash`) que se apaga antes de la perforación. El velo de las hojas es `--scrim`.
+- Vidrio (degradado leve + `backdrop-filter` + filo de luz) en lo que flota: encabezado, campos, barras y hojas. El ticket no lleva `backdrop-filter` ni degradado: cabecera, cuerpo, talón y dientes son `--card` sólido, y la sombra es un `drop-shadow` corto. El velo de las hojas es `--scrim`.
 - Iconos: de trazo (2 px), 22 px, color heredado. Usar los menos posibles: atrás, candado, palomita, teléfono, QR, flecha. Sin emojis.
 
 ### Movimiento
@@ -82,7 +82,7 @@ Ningún campo de texto por debajo de 16 px (evita el zoom automático de iOS).
 
 Viven en `components/ui/`. Son pocos a propósito; no crear variantes que no se usen.
 
-La cuenta, en comensal y en caja, es el **Ticket**: muescas laterales, perforación, talón del mismo papel y borde inferior festoneado. Muestra restaurante, mesa y total. La lista de pagos solo aparece si hay pagos. El talón lleva la etiqueta y el monto grande, sin repetir el total. En caja el talón dice "Restante en efectivo". El anillo (`MesaRing`) ya no se usa.
+La cuenta, en comensal y en caja, es el **Ticket**: papel plano (`--card`) en cabecera, cuerpo y talón, sin degradado ni tinte; muescas laterales, perforación, borde inferior festoneado y una sombra corta de baja opacidad. Muestra restaurante, mesa y total. La lista de pagos solo aparece si hay pagos. El talón lleva la etiqueta y el monto grande, sin repetir el total. En caja el talón dice "Restante en efectivo". El anillo (`MesaRing`) ya no se usa.
 
 | Componente | Especificación |
 |---|---|
@@ -252,7 +252,7 @@ No afirmar nada fiscal sobre las propinas en la interfaz; solo "aparte".
 
 ## 9. Lo que no entra
 
-Menús o pestañas de navegación · pie de página · logotipos de terceros o insignias de "pago seguro" inventadas · ilustraciones o fotos decorativas · colores literales fuera de los tokens · `backdrop-filter` dentro del ticket · degradado en el talón del ticket · avisos emergentes (toasts) · selector de idioma · selector de tema · onboarding o tutoriales · animaciones en bucle · textos de marketing. El vidrio, el tinte de la cabecera del ticket, la barra de avance de la mesa y el tema automático (claro u oscuro según el sistema) sí entran.
+Menús o pestañas de navegación · pie de página · logotipos de terceros o insignias de "pago seguro" inventadas · ilustraciones o fotos decorativas · colores literales fuera de los tokens · `backdrop-filter` dentro del ticket · degradado o tinte en el ticket · avisos emergentes (toasts) · selector de idioma · selector de tema · onboarding o tutoriales · animaciones en bucle · textos de marketing. El vidrio, la barra de avance de la mesa y el tema automático (claro u oscuro según el sistema) sí entran. El ticket es plano.
 
 ---
 

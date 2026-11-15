@@ -2,7 +2,7 @@
 
 :root {
   color-scheme: light dark;
-  --ticket-wash: rgba(64, 196, 214, 0.2);
+  --ticket-shadow: 0 2px 6px rgba(28, 40, 80, 0.08);
   --field-a: rgba(255, 255, 255, 0.96);
   --field-b: rgba(255, 255, 255, 0.72);
   --field-edge: #ffffff;
@@ -47,7 +47,7 @@
   --logo-mark: #ffffff;
   --logo-highlight: rgba(255, 255, 255, 0.35);
   --logo-shadow: rgba(0, 96, 223, 0.6);
-  --bg: var(--screen);
+  --bg: var(--page);
   --surface: var(--card);
   --ink: var(--fg);
   --text: var(--fg2);
@@ -78,7 +78,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --ticket-wash: rgba(120, 214, 232, 0.28);
+    --ticket-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
     --field-a: rgba(46, 46, 50, 0.78);
     --field-b: rgba(28, 28, 30, 0.64);
     --field-edge: rgba(255, 255, 255, 0.08);
@@ -175,10 +175,10 @@
     margin: 0;
     min-height: 100%;
     overflow-x: clip;
+    background: var(--page);
   }
 
   body {
-    background: var(--page);
     color: var(--fg);
     font-family: var(--font);
     font-size: 15px;
@@ -295,6 +295,7 @@
 
 .ps-shell {
   position: relative;
+  background: var(--page);
 }
 
 .ps-shell > .ps-nav {
@@ -453,7 +454,7 @@
 .ps-ticket {
   display: flex;
   flex-direction: column;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.05)) drop-shadow(0 14px 22px var(--tshadow));
+  filter: drop-shadow(var(--ticket-shadow));
 }
 
 .ps-ticket-body,
@@ -467,7 +468,7 @@
   gap: 12px;
   padding: 20px 20px 18px;
   border-radius: 20px 20px 0 0;
-  background: var(--paper);
+  background: var(--card);
   -webkit-mask:
     radial-gradient(circle at 0 100%, #0000 11px, #000 11.5px) left / 51% 100% no-repeat,
     radial-gradient(circle at 100% 100%, #0000 11px, #000 11.5px) right / 51% 100% no-repeat;
@@ -476,29 +477,12 @@
     radial-gradient(circle at 100% 100%, #0000 11px, #000 11.5px) right / 51% 100% no-repeat;
 }
 
-.ps-ticket-body::before {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 76px;
-  pointer-events: none;
-  background: linear-gradient(180deg, var(--ticket-wash), transparent);
-}
-
-.ps-ticket-body > * {
-  position: relative;
-  z-index: 1;
-}
-
 .ps-ticket-stub {
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 18px 20px 14px;
-  background: var(--paper);
+  background: var(--card);
   -webkit-mask:
     radial-gradient(circle at 0 0, #0000 11px, #000 11.5px) left / 51% 100% no-repeat,
     radial-gradient(circle at 100% 0, #0000 11px, #000 11.5px) right / 51% 100% no-repeat;
@@ -518,7 +502,7 @@
 
 .ps-ticket-edge {
   height: 7px;
-  background: radial-gradient(circle at 5px 0, var(--paper) 5px, transparent 5.5px) 0 0 / 10px 7px repeat-x;
+  background: radial-gradient(circle at 5px 0, var(--card) 5px, transparent 5.5px) 0 0 / 10px 7px repeat-x;
 }
 
 .ps-ticket-head {
