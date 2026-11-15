@@ -1,113 +1,68 @@
-# Pay Share
+# PayShare
 
-Un código QR por mesa para que cada quien pague su parte con CoDi, desde el celular, y la caja vea al momento cuánto falta por cobrar en efectivo.
+Un QR por mesa para que cada quien pague su parte con CoDi.
 
-## Demo, sin banco
+## Enlaces
 
-No hace falta cuenta bancaria, ni Pey, ni Supabase. Con `PEY_MODE=mock` el botón **Simular pago** marca el cobro. No mueve dinero. Es la forma de presentar el producto.
+- **App en vivo:** [https://pay-share-one.vercel.app](https://pay-share-one.vercel.app)
+- **Caja:** [https://pay-share-one.vercel.app/caja](https://pay-share-one.vercel.app/caja) — PIN de prueba: `977564`
+- **Mesa de ejemplo:** [https://pay-share-one.vercel.app/mesa/4](https://pay-share-one.vercel.app/mesa/4)
+- _Video demo: enlace en el formulario de entrega_
 
-En esta computadora la app está en [http://127.0.0.1:3001](http://127.0.0.1:3001). El puerto 3000 lo usa otra aplicación. `NEXT_PUBLIC_BASE_URL` tiene que ser esa misma dirección, porque va dentro de los QR de las mesas.
+## El problema
 
-Guion:
+Cuando varios comensales pagan por separado, el restaurante termina revisando transferencias a mano. Las propinas se revuelven con la venta. El cajero no ve al momento cuánto ya se cubrió y cuánto falta en efectivo.
 
-1. En la caja, abre la Mesa 4 con $500.
-2. En otra pestaña abre `/mesa/4`. Escribe 300, propina 10% y, si quieres, un nombre.
-3. Paga, elige el código QR y pulsa **Simular pago**.
-4. La caja muestra, sola, $300 pagados, $30 de propina y $200 restantes en efectivo.
+## Cómo funciona
 
-Si reinicias el servidor, las mesas se borran: viven en la memoria, no en una base de datos.
+1. El cajero abre la mesa escribiendo solo el total.
+2. El comensal escanea el QR fijo de esa mesa.
+3. Escribe su parte y la propina.
+4. Paga con un Mensaje de Cobro CoDi dinámico.
+5. La caja se actualiza sola: muestra lo pagado por transferencia, las propinas aparte y lo que falta en efectivo. El cajero cierra la mesa cuando la cuenta está completa.
 
-Para cobrar de verdad más adelante harían falta Supabase, una cuenta de Pey y una app de banco con CoDi. La cuenta bancaria real de Pey tarda días y no es necesaria para esta demo. Mientras la cuenta receptora sea la de prueba, `DEMO_MODE` se queda en `true`: Pey cobraría $0.01 y ese dinero no regresa.
+## Cómo usa el API de pey
 
-## Correrlo en otra computadora
+Al pagar, `app/api/pay/route.ts` crea el cobro y `lib/payments/pey.ts` llama a `POST https://api.pey.mx/codi/qr` con el monto, un concepto como `Mesa 4 cuenta 12`, la expiración y `numRef`.
 
-En esta máquina ya está corriendo. Estos pasos son para otra.
+Cuando el pago entra, pey envía el webhook firmado `codi.qr.payment_received` a `app/api/webhooks/pey/route.ts`. La firma se verifica con [Standard Webhooks](https://www.standardwebhooks.com/). El registro es idempotente: un aviso reenviado no cuenta dos veces (`markPaid` solo actualiza el pago si sigue pendiente).
 
-1. Instala las dependencias:
+La versión publicada usa el modo de prueba mientras se activa la cuenta CLABE en pey; con `PEY_MODE=live` usa el API real.
+
+## Cómo probarlo
+
+1. Entra a [la caja](https://pay-share-one.vercel.app/caja) con el PIN de prueba `977564`.
+2. Abre la Mesa 4 escribiendo solo el total, por ejemplo `$500`.
+3. En otra pestaña o en el celular abre [la mesa de ejemplo](https://pay-share-one.vercel.app/mesa/4). Escribe tu parte y la propina, y paga. En la versión publicada, confirma el cobro con el botón de demostración (el sitio corre con `PEY_MODE=mock`).
+4. Vuelve a la caja: verás lo pagado, la propina aparte y el restante en efectivo. Si la cuenta está completa, ciérrala con **Cerrar mesa**.
+
+## Stack
+
+Next.js, React, TypeScript, Tailwind CSS, Supabase, Vercel, `qrcode` y `standardwebhooks`.
+
+## Correrlo localmente
 
 ```bash
 pnpm install
-```
-
-2. Copia el ejemplo de variables y ábrelo:
-
-```bash
 cp .env.example .env.local
-```
-
-3. Llena `.env.local`:
-
-| Variable | Dónde la consigues |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API → Project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | La misma pantalla, llave `anon` / public |
-| `SUPABASE_SERVICE_ROLE_KEY` | La misma pantalla, llave `service_role`. Es secreta. No la compartas ni la pongas en el navegador |
-| `NEXT_PUBLIC_BASE_URL` | La misma dirección que abres en el navegador, sin barra al final |
-| `NEXT_PUBLIC_RESTAURANT_NAME` | El nombre que ve el comensal, por ejemplo `La Ceiba` |
-| `PEY_MODE` | `mock` para practicar sin banco. `live` cuando ya tengas la llave de Pey |
-| `DEMO_MODE` | Déjalo en `true`. Pey cobra $0.01 aunque la cuenta diga $500. **No lo pongas en `false` mientras uses la cuenta de prueba de Pey: ese dinero no regresa** |
-| `PEY_API_KEY` | Portal Pey → Developer. Solo hace falta con `PEY_MODE=live` |
-| `PEY_WEBHOOK_SECRET` | El secreto `whsec_…` del webhook. Solo servidor |
-| `CASHIER_PIN` | Un PIN para la caja. En el sitio publicado es obligatorio |
-
-4. En Supabase, abre **SQL Editor**, pega todo el archivo `supabase/migrations/0001_init.sql` y ejecútalo. Deben aparecer 6 mesas.
-
-5. Arranca:
-
-```bash
 pnpm dev
 ```
 
-Abre `http://localhost:3000`. Entra a la caja, abre una mesa y, en otra pestaña, visita `/mesa/4`.
+Abre `http://localhost:3000`. Si usas Supabase, ejecuta `supabase/migrations/0001_init.sql` en el SQL Editor (crea 6 mesas). Si dejas las llaves de Supabase vacías y usas `PEY_MODE=mock`, las mesas viven en memoria y se borran al reiniciar.
 
-Si todavía no tienes Supabase, deja esas tres llaves vacías y usa `PEY_MODE=mock`. La app guarda las mesas en la memoria del servidor: sirven para ensayar y **se borran al reiniciar**. En el sitio publicado las llaves son obligatorias.
+| Variable | Uso |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Project URL de Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Llave `anon` / public |
+| `SUPABASE_SERVICE_ROLE_KEY` | Llave `service_role`. Es secreta: no la compartas ni la expongas en el navegador |
+| `NEXT_PUBLIC_BASE_URL` | Dirección del sitio, sin barra al final (en local, `http://localhost:3000`) |
+| `NEXT_PUBLIC_RESTAURANT_NAME` | Nombre que ve el comensal |
+| `PEY_MODE` | `mock` para probar sin banco; `live` para usar el API de pey |
+| `DEMO_MODE` | Con `true`, en modo `live` pey cobra $0.01. No lo pongas en `false` mientras uses la cuenta de prueba de pey: ese dinero no se devuelve |
+| `PEY_API_KEY` | Portal pey → Developer. Solo hace falta con `PEY_MODE=live`. Es secreta |
+| `PEY_WEBHOOK_SECRET` | Secreto `whsec_…` del webhook. Solo servidor; no lo publiques |
+| `CASHIER_PIN` | PIN de la caja. En el sitio publicado es obligatorio |
 
-Con `PEY_MODE=mock` aparece el botón **Simular pago**. No mueve dinero.
+## Componentes de terceros
 
-## Publicar en Vercel
-
-Opcional. La demo local no lo necesita. Hace falta tu cuenta de GitHub y la de Vercel.
-
-1. Crea un repositorio privado en GitHub y súbelo.
-2. En [Vercel](https://vercel.com), importa ese repositorio.
-3. En **Settings → Environment Variables** copia todas las variables de `.env.local`.
-4. Pon `PEY_MODE=live` y `DEMO_MODE=true`.
-5. En el primer despliegue, `NEXT_PUBLIC_BASE_URL` puede quedar con la dirección que te da Vercel, por ejemplo `https://pay-share.vercel.app`.
-6. Vuelve a desplegar después de cambiar `NEXT_PUBLIC_BASE_URL`, porque esa dirección va impresa en los QR de las mesas.
-7. Define `CASHIER_PIN`. Sin él, la caja publicada no se abre.
-
-## Registrar el webhook de Pey
-
-1. Portal Pey → Developer → el engrane de tu API key.
-2. Webhook: `https://TU-SITIO.vercel.app/api/webhooks/pey`
-3. Copia el secreto `whsec_…` a `PEY_WEBHOOK_SECRET` en Vercel.
-4. Redespliega.
-
-## Probar con $0.01
-
-1. En la caja, abre la Mesa 4 con $500.
-2. En el teléfono abre el QR de esa mesa (o entra a `/mesa/4`).
-3. Escribe $300, propina $30 y paga desde la app del banco.
-4. La caja debe mostrar, sola, pagado $300, propinas $30 y $200 restantes en efectivo.
-5. En el portal de Pey, **Webhook Logs** debe decir `200`.
-
-Repite el pago una segunda vez. Un reenvío del mismo aviso no debe sumar el dinero dos veces.
-
-## Antes del demo
-
-- [ ] `DEMO_MODE=true` (sobre todo si la cuenta de Pey es la de prueba)
-- [ ] `PEY_MODE=live` en el sitio real y las variables completas en Vercel
-- [ ] El webhook responde 200 en un pago de prueba
-- [ ] La mesa del demo está cerrada antes de empezar, para abrirla en vivo
-- [ ] Celular con batería, datos móviles y CoDi activo
-- [ ] Sabes el PIN de la caja
-- [ ] Plan B: otro despliegue con `PEY_MODE=mock` y el video del pago real
-
-## Comandos
-
-```bash
-pnpm dev        # la app en local
-pnpm test       # pruebas
-pnpm typecheck  # revisión de tipos
-pnpm build      # la misma compilación que usa Vercel
-```
+Next.js, React, TypeScript, Tailwind CSS, `@supabase/supabase-js`, `qrcode`, `standardwebhooks`, `@vercel/blob` y el API de pey. El proyecto se construyó durante el hackathon con ayuda de herramientas de IA (Cursor).
