@@ -12,7 +12,7 @@ export function DinerShell({
   return (
     <div
       className={cn(
-        "mx-auto flex h-(--app-height,100dvh) w-full max-w-[440px] flex-col overflow-hidden bg-bg",
+        "mx-auto flex h-(--app-height,100dvh) w-full max-w-[440px] flex-col overflow-hidden bg-bg min-[480px]:my-6 min-[480px]:h-[min(calc(var(--app-height,100dvh)-3rem),820px)] min-[480px]:rounded-2xl min-[480px]:border min-[480px]:border-line min-[480px]:shadow-card",
         className,
       )}
       {...props}
