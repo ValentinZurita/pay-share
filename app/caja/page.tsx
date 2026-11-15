@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { CajaApp } from "@/components/caja/caja-app";
-import { AccountSkeleton } from "@/components/ui/account-card";
+import { AccountSkeleton } from "@/components/ui/ticket";
 import { Card } from "@/components/ui/card";
 import { CenteredCardShell } from "@/components/ui/page-shell";
 import { getAllSnapshots } from "@/lib/db";

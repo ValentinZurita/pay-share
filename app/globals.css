@@ -501,6 +501,275 @@
   }
 }
 
+.ps-ticket {
+  display: flex;
+  flex-direction: column;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.05)) drop-shadow(0 14px 22px var(--tshadow));
+}
+
+.ps-ticket-body,
+.ps-ticket-stub {
+  position: relative;
+}
+
+.ps-ticket-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 20px 18px;
+  border-radius: 20px 20px 0 0;
+  background: linear-gradient(180deg, var(--paper), var(--paper-2));
+  -webkit-mask:
+    radial-gradient(circle at 0 100%, #0000 11px, #000 11.5px) left / 51% 100% no-repeat,
+    radial-gradient(circle at 100% 100%, #0000 11px, #000 11.5px) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle at 0 100%, #0000 11px, #000 11.5px) left / 51% 100% no-repeat,
+    radial-gradient(circle at 100% 100%, #0000 11px, #000 11.5px) right / 51% 100% no-repeat;
+}
+
+.ps-ticket-stub {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 20px 14px;
+  background:
+    radial-gradient(90% 140% at 100% 100%, var(--stub-glow), transparent 62%),
+    linear-gradient(180deg, var(--stub-a), var(--stub-b));
+  -webkit-mask:
+    radial-gradient(circle at 0 0, #0000 11px, #000 11.5px) left / 51% 100% no-repeat,
+    radial-gradient(circle at 100% 0, #0000 11px, #000 11.5px) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle at 0 0, #0000 11px, #000 11.5px) left / 51% 100% no-repeat,
+    radial-gradient(circle at 100% 0, #0000 11px, #000 11.5px) right / 51% 100% no-repeat;
+}
+
+.ps-ticket-stub::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 18px;
+  left: 18px;
+  border-top: 1.5px dashed var(--perf);
+}
+
+.ps-ticket-edge {
+  height: 7px;
+  background: radial-gradient(circle at 5px 0, var(--stub-b) 5px, transparent 5.5px) 0 0 / 10px 7px repeat-x;
+}
+
+.ps-ticket-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: center;
+}
+
+.ps-ticket-brand {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--fg);
+}
+
+.ps-ticket-meta {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--fg2);
+}
+
+.ps-ticket-rule {
+  border-top: 1.5px dashed var(--sep);
+}
+
+.ps-ticket-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14.5px;
+  color: var(--fg);
+}
+
+.ps-ticket-amt {
+  font-family: var(--mono);
+  font-size: 14.5px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--fg);
+}
+
+.ps-ticket-total .ps-ticket-amt {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.ps-ticket-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fg2);
+}
+
+.ps-ticket-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ps-ticket-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 -8px;
+  padding: 0 8px;
+  border-radius: 10px;
+}
+
+.ps-ticket-who {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.ps-ticket-who b {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.ps-ticket-who small {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--fg2);
+}
+
+.ps-ticket-you {
+  margin: 0 -8px;
+  padding: 7px 8px;
+  background: var(--accent-tint);
+  color: var(--accent);
+  animation: ps-ticket-in 0.3s ease both;
+}
+
+.ps-ticket-you b,
+.ps-ticket-you small,
+.ps-ticket-you .ps-ticket-amt {
+  color: var(--accent);
+}
+
+.ps-ticket-fresh {
+  animation: ps-ticket-fresh 2.4s ease both;
+}
+
+.ps-ticket-empty {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--fg2);
+}
+
+.ps-ticket-rest {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ps-ticket-rest-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 5px;
+}
+
+.ps-ticket-rest-label small {
+  font-size: 12.5px;
+  color: var(--fg2);
+}
+
+.ps-ticket-big {
+  font-family: var(--mono);
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--fg);
+}
+
+.ps-ticket-ok {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font);
+  font-size: 30px;
+  letter-spacing: -0.02em;
+  color: var(--ok);
+}
+
+.ps-ticket-ok svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ps-ticket-bar {
+  display: flex;
+  gap: 3px;
+  height: 6px;
+}
+
+.ps-ticket-bar span {
+  border-radius: 3px;
+  transition: flex-grow 0.5s var(--ease);
+}
+
+.ps-ticket-bar-paid {
+  background: var(--fg);
+}
+
+.ps-ticket-bar-you {
+  background: var(--accent);
+}
+
+.ps-ticket-bar-rest {
+  background: var(--fill);
+}
+
+.ps-ticket-cap {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--fg2);
+}
+
+.ps-ticket-cap b {
+  font-weight: 600;
+  color: var(--fg);
+}
+
+@keyframes ps-ticket-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes ps-ticket-fresh {
+  0%,
+  40% {
+    background: var(--ok-tint);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

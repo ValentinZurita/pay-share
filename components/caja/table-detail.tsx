@@ -1,6 +1,6 @@
 "use client";
 
-import { AccountCard } from "@/components/ui/account-card";
+import { Ticket } from "@/components/ui/ticket";
 import { Button } from "@/components/ui/button";
 import { KeyValueList } from "@/components/ui/card";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
@@ -34,6 +34,8 @@ export function TableDetail({
   onShareLink: () => void;
   onRequestClose: () => void;
 }) {
+  const restaurant = process.env.NEXT_PUBLIC_RESTAURANT_NAME?.trim() ?? "";
+
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden min-[900px]:h-full min-[900px]:rounded-2xl min-[900px]:bg-surface min-[900px]:shadow-card">
       <header className="grid min-h-[60px] flex-none grid-cols-[44px_minmax(0,1fr)_44px] items-center justify-items-center gap-2.5 px-5 pt-[calc(16px+env(safe-area-inset-top))] pb-2.5 min-[900px]:flex min-[900px]:min-h-0 min-[900px]:justify-between min-[900px]:border-b min-[900px]:border-line min-[900px]:px-5 min-[900px]:pt-[18px] min-[900px]:pb-3.5">
@@ -76,16 +78,14 @@ export function TableDetail({
 
       <ScrollBody className="min-[900px]:gap-4 min-[900px]:p-5">
         {copied ? <MutedNote role="status">Enlace copiado.</MutedNote> : null}
-        <AccountCard
+        <Ticket
           bill={bill}
-          restLabel="Restante en efectivo"
+          restaurant={restaurant}
+          tableName={table.name}
+          createdAt={bill.createdAt}
           staff
           freshIds={freshIds}
-          variant="bordered"
         />
-        {bill.payments.length === 0 ? (
-          <MutedNote>Aún no entra ningún pago. Aparecen aquí solos.</MutedNote>
-        ) : null}
         <KeyValueList
           variant="bordered"
           items={[

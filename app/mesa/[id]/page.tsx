@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { MesaApp } from "@/components/mesa/mesa-app";
-import { AccountSkeleton } from "@/components/ui/account-card";
+import { AccountSkeleton } from "@/components/ui/ticket";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DinerShell, ScrollBody } from "@/components/ui/page-shell";
 import { getTableSnapshot } from "@/lib/db";

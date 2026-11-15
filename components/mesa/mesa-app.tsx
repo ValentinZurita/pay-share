@@ -5,7 +5,7 @@ import { PaymentForm } from "@/components/mesa/payment-form";
 import { PaymentMethodSheet, PhoneChargeSheet } from "@/components/mesa/payment-sheets";
 import { ActivePaymentView, PaymentDoneView, type PaymentSession } from "@/components/mesa/payment-views";
 import type { TipMode } from "@/components/mesa/tip-selector";
-import { AccountCard } from "@/components/ui/account-card";
+import { Ticket } from "@/components/ui/ticket";
 import { Banner } from "@/components/ui/banner";
 import { BrandBar } from "@/components/ui/brand-bar";
 import { Button } from "@/components/ui/button";
@@ -59,6 +59,7 @@ function useNow() {
 
 export function MesaApp({
   initial,
+  restaurant,
   mockMode,
 }: {
   initial: Snapshot;
@@ -278,7 +279,13 @@ export function MesaApp({
     <DinerShell>
       <BrandBar subtitle="Paga con CoDi" chip={snapshot.table.name} />
       <ScrollBody>
-        <AccountCard bill={bill} restLabel="Restante" staff={false} />
+        <Ticket
+          bill={bill}
+          restaurant={restaurant}
+          tableName={snapshot.table.name}
+          createdAt={bill.createdAt}
+          pending={{ name, partCents: quote.part, tipCents: quote.tip }}
+        />
         {bill.remainingCents === 0 ? (
           <EmptyState
             tone="success"

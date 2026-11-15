@@ -1,4 +1,4 @@
-export { AccountCard, AccountSkeleton } from "./account-card";
+export { AccountSkeleton, Ticket } from "./ticket";
 export { AppFrame } from "./app-frame";
 export { Badge, type BadgeVariant } from "./badge";
 export { Banner, type BannerVariant } from "./banner";
